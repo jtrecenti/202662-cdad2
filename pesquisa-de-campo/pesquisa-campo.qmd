@@ -1,0 +1,975 @@
+---
+title: "APS | Pesquisa de campo"
+subtitle: "Ciência de Dados Aplicada ao Direito II"
+lang: pt-BR
+format:
+  typst:
+    papersize: presentation-16-9
+    margin:
+      left: 2.2cm
+      right: 2.2cm
+      top: 1.7cm
+      bottom: 1.4cm
+    fontsize: 10pt
+    font-paths: [fonts]
+    template-partials:
+      - typst-template.typ
+      - typst-show.typ
+---
+
+<!--
+Estrutura do arquivo:
+  - cada `#` (titulo de nivel 1) inicia uma nova pagina
+  - blocos ```{=typst} usam os componentes de typst-template.typ:
+    cover-page, tema-title, contexto, cards, card, two-cols, three-cols,
+    eyebrow, tag, links, refs, note
+  - cada pagina foi ajustada para caber inteira em um slide 16:9. Ao editar o
+    texto, confira o resultado renderizado antes de commitar.
+  - as ferramentas indicadas em "Para estudar" sao todas em Python ou
+    independentes de linguagem, porque a turma trabalha em Python.
+Para recompilar: quarto render pesquisa-campo.qmd
+-->
+
+```{=typst}
+#cover-page(
+  kicker: "Insper · Graduação em Direito · 4A · 2026/62",
+  title: [Pesquisa\ de campo],
+  subtitle: [Atividade Prática Supervisionada em grupo: sete temas, sete métodos e uma pergunta de pesquisa para responder com dados próprios.],
+  meta: [Ciência de Dados Aplicada ao Direito II],
+)
+```
+
+# Instruções
+
+```{=typst}
+#two-cols(left-w: 1.12fr, right-w: 1fr, gutter: 24pt)[
+  #set text(size: 9.5pt)
+  #eyebrow("O que é a atividade")
+
+  A turma se divide em *14 grupos* distribuídos por *7 temas*, de modo que cada
+  tema fica com exatamente dois grupos. Os dois grupos de um mesmo tema trabalham
+  de forma independente, com coleta e análise próprias, e se encontram apenas na
+  dinâmica final, quando comparam resultados.
+
+  Cada tema está associado a um *método que não foi tratado diretamente na
+  disciplina*, mas que vocês têm condições de estudar e conduzir ao longo do
+  semestre. Aprender o método faz parte da entrega: espera-se leitura de
+  referências, teste em pequena escala e ajuste do desenho antes da coleta
+  definitiva.
+
+  Os temas são descritos de forma *propositalmente incompleta*. Decisões como
+  recorte, tamanho de amostra, critérios de inclusão e forma de apresentar os
+  resultados ficam em aberto para que o grupo discuta estratégias e assuma suas
+  próprias escolhas, sempre justificadas no relatório.
+
+  #note[Cada página deste documento descreve um tema. Leia todos antes de dar as notas de preferência.]
+][
+  #eyebrow("As três entregas")
+
+  #cards(cols: 1, gutter: 9pt,
+    card(title: "1. Entrega parcial", tone: "accent", accent: brand)[
+      Versão preliminar do relatório, com descrição clara do método, o status atual
+      da coleta e da análise, e os dados já obtidos até o momento.
+    ],
+    card(title: "2. Relatório", tone: "accent", accent: roxo)[
+      Até 10 páginas, com introdução, metodologia, resultados e conclusões.
+      *Enviar 3 dias antes do dia da primeira apresentação.*
+    ],
+    card(title: "3. Dinâmica com debate", tone: "accent", accent: turquesa)[
+      Os dois grupos do mesmo tema apresentam resultados e debatem entre si, com
+      perguntas do professor e perguntas cruzadas.
+    ],
+  )
+]
+
+#v(9pt)
+
+#cards(cols: 4, gutter: 11pt,
+  card(title: "Por onde começar", height: 2.9cm)[
+    Formem o grupo, leiam os sete temas e deem as notas de preferência. Com o tema
+    atribuído, comecem pelas referências da página do tema.
+  ],
+  card(title: "Antes de coletar", height: 2.9cm)[
+    Escrevam a pergunta em uma frase, definam a população, o instrumento e o plano
+    de análise. Testem com poucos casos e corrijam.
+  ],
+  card(title: "Durante a coleta", height: 2.9cm)[
+    Registrem datas, filtros, recusas, perdas e mudanças de rota. Esse registro é
+    o que torna o relatório verificável.
+  ],
+  card(title: "Na entrega", height: 2.9cm, tone: "dark")[
+    As conclusões precisam ser sustentadas pelos resultados, e não por opiniões do
+    grupo. Limitação declarada conta a favor.
+  ],
+)
+```
+
+# Regras
+
+```{=typst}
+#three-cols(gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Tamanho dos grupos")
+
+  São *14 grupos*: 4 grupos com 4 pessoas e 10 grupos com 5 pessoas. Não serão
+  aceitos grupos com 3 pessoas nem com 6 ou mais pessoas.
+
+  #eyebrow("Seleção dos temas dos grupos", top: 11pt)
+
+  Cada grupo dá uma nota de *-3 a +3* (com o 0 incluído) para cada tema,
+  demonstrando sua preferência, em que -3 representa preferência mínima e +3
+  preferência máxima. As notas não se repetem: dois temas devem receber notas
+  diferentes.
+
+  A alocação busca respeitar essas preferências. Em caso de empate (por exemplo,
+  três grupos deram +3 ao mesmo tema), os grupos daquele tema são sorteados e o
+  grupo que ficou sem tema pode ficar com o próximo tema de sua lista. No final,
+  *cada tema fica com exatamente 2 grupos*.
+][
+  #set text(size: 9pt)
+  #eyebrow("Entrega parcial")
+
+  O grupo entrega uma *versão preliminar do relatório* contendo: descrição clara
+  do método escolhido e de como ele será aplicado; o *status* da coleta e da
+  análise naquele momento; e os *dados já obtidos até então*, compartilhados junto
+  com a entrega.
+
+  A entrega parcial não precisa ter resultados finais. Precisa mostrar que o
+  desenho está definido, que a coleta começou e que o grupo sabe o que ainda falta.
+
+  #eyebrow("Relatório", top: 11pt)
+
+  O relatório deve destacar os resultados do estudo, com descrição adequada de
+  acordo com o método aplicado. Se o trabalho envolver análise de sobrevivência,
+  deve mostrar curvas de sobrevivência (Kaplan-Meier); se envolver entrevistas,
+  deve relatar os resultados e citar trechos de forma correta.
+
+  *Enviar 3 dias antes do dia da primeira apresentação.*
+][
+  #set text(size: 9pt)
+  #eyebrow("Dinâmica com debate")
+
+  Para cada tema, os dois grupos apresentam seus resultados em *7 minutos cada*, um
+  após o outro. O professor faz uma ou mais perguntas ou comentários para cada
+  grupo, e cada grupo faz *uma pergunta para o outro grupo do mesmo tema*. Os
+  grupos respondem.
+
+  A dinâmica completa de cada tema deve durar de *25 a 30 minutos* no total. Um dos
+  dias de apresentação terá 4 temas, e o outro dia terá 3 temas.
+
+  #eyebrow("Dúvidas e autonomia", top: 11pt)
+
+  Dúvidas sobre o método, sobre o tema e sobre a coleta de dados são respondidas
+  *até a prova intermediária*. Depois dessa data, espera-se que o grupo atue de
+  forma autônoma, e o professor poderá se recusar a responder perguntas sobre esses
+  pontos. Planejem o cronograma para que as decisões de desenho estejam tomadas
+  antes disso.
+]
+
+#v(9pt)
+
+#cards(cols: 4, gutter: 11pt,
+  card(title: "14 grupos", tone: "accent", accent: brand, height: 2.4cm)[
+    na turma: 4 grupos de 4 pessoas e 10 grupos de 5 pessoas.
+  ],
+  card(title: "7 temas", tone: "accent", accent: roxo, height: 2.4cm)[
+    cada um com exatamente 2 grupos, trabalhando de forma independente.
+  ],
+  card(title: "7 minutos", tone: "accent", accent: laranja, height: 2.4cm)[
+    de apresentação por grupo, seguidos de perguntas e debate.
+  ],
+  card(title: "3 dias", tone: "accent", accent: turquesa, height: 2.4cm)[
+    de antecedência para o envio do relatório, contados da primeira apresentação.
+  ],
+)
+```
+
+# Como conduzir o trabalho
+
+```{=typst}
+#block(above: 0pt, below: 10pt, text(size: 9.5pt, fill: ink-soft)[
+  Os sete temas usam métodos diferentes, mas as exigências de qualidade são as
+  mesmas. O que se avalia não é o resultado ter dado bonito, e sim o percurso ter
+  sido defensável. As ferramentas indicadas em cada tema são em Python ou
+  independentes de linguagem. As orientações abaixo valem para todos os grupos.
+])
+
+#cards(cols: 3, gutter: 12pt,
+  card(title: "Pergunta antes do método", tone: "accent", accent: brand, height: 5.1cm)[
+    Escrevam a pergunta de pesquisa em uma frase e mantenham essa frase visível
+    durante todo o trabalho. Definam a *unidade de análise* (um processo? uma
+    pessoa? uma questão de prova?) e o que exatamente será medido em cada unidade.
+    Se a pergunta mudar no meio do caminho, registrem a mudança e o motivo.
+  ],
+  card(title: "Amostragem adequada", tone: "accent", accent: roxo, height: 5.1cm)[
+    Descrevam a *população-alvo*, o *marco amostral* efetivamente acessível e como
+    os casos foram selecionados. Nem toda pesquisa precisa de amostra
+    probabilística, mas toda pesquisa precisa declarar o tipo de amostragem
+    (aleatória, por conveniência, intencional, por cotas, bola de neve) e o que
+    isso limita nas conclusões. Documentem tamanho, critérios de inclusão e perdas.
+  ],
+  card(title: "Fidelidade ao método", tone: "accent", accent: turquesa, height: 5.1cm)[
+    Cada método tem etapas próprias que não podem ser puladas: rodadas sucessivas
+    no Delphi, distribuição forçada no Q-sort, aleatorização dos cenários no
+    experimento, tratamento da censura na análise de sobrevivência, saturação nas
+    entrevistas. Apliquem o método completo em escala menor, se necessário, em vez
+    de aplicar meio método em escala maior.
+  ],
+  card(title: "Ética e dados pessoais", tone: "accent", accent: amarelo, height: 5.1cm)[
+    Toda coleta com pessoas exige *consentimento informado*: quem são vocês, para
+    que serve a pesquisa, o que será feito com as respostas e como a pessoa pode
+    desistir. Gravem somente com autorização explícita e anonimizem já na
+    transcrição. Não coletem dado pessoal que a análise não vá usar. Em processos
+    públicos, atenção a segredo de justiça e a partes vulneráveis.
+  ],
+  card(title: "Reprodutibilidade", tone: "accent", accent: laranja, height: 5.1cm)[
+    Entreguem o material que permite refazer o caminho: código de coleta e análise,
+    dicionário de variáveis, instrumento aplicado (roteiro, questionário, grade de
+    codificação) e a base tratada, quando puder ser compartilhada. Fixem a semente
+    aleatória. Um leitor externo deve conseguir chegar aos mesmos números com o que
+    foi entregue.
+  ],
+  card(title: "Uso de inteligência artificial", tone: "dark", height: 5.1cm)[
+    *Permitido:* apoio na escrita e na revisão do texto, apoio em código e ajuda
+    para entender o método.
+
+    *Vedado:* gerar dados, respostas ou participantes fictícios; substituir a
+    coleta real por simulação; apresentar análise que o grupo não saiba explicar;
+    citar referência sem ter verificado que ela existe.
+
+    *Obrigatório:* declarar em apêndice as ferramentas usadas e em que etapas. A
+    responsabilidade pelo conteúdo é integralmente do grupo.
+  ],
+)
+```
+
+```{=typst}
+#pagebreak(weak: true)
+#tema-title(
+  numero: "1",
+  titulo: [Duração de processos judiciais],
+  metodo: "Análise de sobrevivência",
+  pergunta: [Quanto tempo demora um processo judicial?],
+  accent: brand,
+  accent-text: white,
+)
+
+#contexto[
+  A duração do processo é um dos indicadores mais cobrados do Judiciário brasileiro
+  e um dos mais mal medidos. Relatórios oficiais divulgam tempos médios agregados,
+  mas a pergunta que interessa a quem litiga é outra: dado um processo com estas
+  características, quanto tempo até a sentença? Responder isso exige lidar com os
+  processos que ainda não terminaram, porque olhar só para os já encerrados
+  subestima sistematicamente o tempo real.
+]
+
+#two-cols(left-w: 1.22fr, right-w: 1fr, gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Roteiro do trabalho")
+
+  O grupo começa definindo um *recorte específico de processos*, combinando uma
+  classe processual e um ou mais assuntos das Tabelas Processuais Unificadas do
+  CNJ. Antes de coletar dados, desenha o fluxo teórico esperado desse tipo de
+  processo, mapeando as principais fases (distribuição, contestação, saneamento,
+  instrução, sentença, recurso, trânsito em julgado, baixa) e os marcos que serão
+  usados como eventos.
+
+  Em seguida, usando o pacote juscraper, o grupo baixa uma amostra desses processos
+  a partir do DataJud. Quando as movimentações não estiverem disponíveis
+  diretamente, complementa a coleta na consulta processual do tribunal ou no
+  jus.br/PDPJ. É preciso documentar o tamanho da amostra, o período considerado e
+  os filtros aplicados.
+
+  A partir das movimentações, o grupo desenvolve uma rotina para identificar as
+  datas das fases relevantes e calcular os intervalos entre elas, tratando de forma
+  explícita a *censura*: processos que ainda não atingiram o evento de interesse são
+  observações censuradas à direita. O grupo define com clareza o tempo de origem
+  (por exemplo, a distribuição) e o evento (por exemplo, a sentença ou a baixa).
+
+  Na análise, aplica o estimador de *Kaplan-Meier*, apresenta as curvas com
+  intervalos de confiança e reporta os tempos medianos. Para comparações entre
+  subgrupos (por comarca, por valor da causa ou por assunto), utiliza o *teste de
+  log-rank* e, se quiser avançar, *modelos de regressão de Cox* para avaliar
+  covariáveis. O relatório destaca os tempos medianos, as diferenças entre grupos e
+  as limitações da amostra.
+][
+  #eyebrow("Conceitos essenciais")
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Tempo de origem, evento de interesse e tempo até o evento],
+      [Censura à direita e por que a média dos processos já encerrados enviesa o resultado],
+      [Função de sobrevivência e função de risco],
+      [Estimador de Kaplan-Meier e intervalo de confiança da curva],
+      [Tempo mediano de sobrevivência e por que ele substitui a média],
+      [Teste de log-rank para comparar curvas],
+      [Modelo de Cox, razão de riscos e proporcionalidade],
+      [Truncamento à esquerda e viés de seleção por período],
+    )
+  })
+
+  #eyebrow("Para estudar", top: 9pt)
+
+  #links(
+    [#link("https://www.youtube.com/watch?v=YnHKlj5Tbcc")[Análise de sobrevida e Kaplan-Meier], no canal Cientística (vídeo)],
+    [#link("https://lifelines.readthedocs.io/en/stable/")[lifelines] (Kaplan-Meier, log-rank e Cox em Python) e #link("https://scikit-survival.readthedocs.io/en/stable/")[scikit-survival]],
+    [#link("https://github.com/jtrecenti/juscraper")[juscraper] e #link("https://datajud-wiki.cnj.jus.br/")[wiki da API pública do DataJud]],
+  )
+
+  #eyebrow("Referências", top: 9pt)
+
+  #refs(
+    [Associação Brasileira de Jurimetria; CNJ (2015). #emph[Tempo dos processos relacionados à adoção no Brasil: uma análise sobre os impactos da atuação do Judiciário]. Brasília: CNJ. #link("https://www.cnj.jus.br/wp-content/uploads/2021/09/just-pesquisa-tempo-processos-adocao2015.pdf")[Disponível no portal do CNJ]],
+    [Corrêa, F.; Stern, R. (2025). #emph[Another note on the censoring problem: a state of the art assessment and a review of methods for case duration analyses]. SSRN. #link("https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5340259")[ssrn:5340259]],
+  )
+]
+```
+
+```{=typst}
+#pagebreak(weak: true)
+#tema-title(
+  numero: "2",
+  titulo: [Valor ótimo de acordo],
+  metodo: "Elicitação e teoria dos prospectos",
+  pergunta: [Quanto oferecer de acordo?],
+  accent: roxo,
+  accent-text: white,
+)
+
+#contexto[
+  Decidir se aceita ou recusa um acordo é uma das decisões mais frequentes da
+  advocacia e uma das menos apoiadas em evidência. Na teoria, bastaria comparar a
+  oferta com o valor esperado do litígio. Na prática, a decisão é afetada pela
+  aversão à perda, pela urgência do cliente, pela confiança na probabilidade de
+  vitória e pela forma como a proposta é apresentada. Saber em que faixas as
+  pessoas de fato aceitam permite calibrar propostas em vez de arbitrar valores.
+]
+
+#two-cols(left-w: 1.22fr, right-w: 1fr, gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Roteiro do trabalho")
+
+  O grupo constrói um *instrumento de pesquisa (survey experimental)* que apresenta
+  de forma clara e padronizada um caso de responsabilidade civil, com pessoa física
+  no polo ativo e empresa no polo passivo, e pedido de indenização por dano moral.
+  O caso deve ser descrito de maneira que qualquer respondente entenda o contexto e
+  a decisão que precisa tomar: aceitar ou não uma oferta de acordo.
+
+  O desenho experimental varia *três fatores*: a probabilidade percebida de
+  vitória, o valor da ação e o valor da oferta de acordo. O grupo define níveis
+  para cada fator (por exemplo, probabilidade de 20%, 50% e 80%; oferta de 30%, 50%
+  e 70% do valor da ação) e monta cenários combinando esses níveis, atribuídos aos
+  respondentes de forma aleatória (#box[*entre sujeitos*]) ou apresentados em
+  blocos (#box[*dentro de sujeitos*]).
+
+  Para cada cenário, o grupo coleta a decisão do respondente (aceitaria ou não o
+  acordo) e, quando possível, o *valor mínimo que aceitaria*, que é o equivalente
+  de certeza. A análise relaciona a taxa de aceitação com o valor esperado do
+  litígio e com a oferta, testando previsões da teoria dos prospectos: aversão à
+  perda, ponderação não linear de probabilidades e mudança de atitude ao risco
+  entre o domínio dos ganhos e o das perdas.
+
+  O relatório identifica em quais combinações de probabilidade e oferta as pessoas
+  tendem a aceitar o acordo e discute as implicações para a estratégia do cliente.
+][
+  #eyebrow("Conceitos essenciais")
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Valor esperado do litígio e equivalente de certeza],
+      [Aversão ao risco, aversão à perda e ponto de referência],
+      [Função de valor em S e ponderação não linear de probabilidades],
+      [Efeito de enquadramento (ganho ou perda) na decisão de acordo],
+      [Desenho fatorial, aleatorização e efeito de ordem],
+      [Delineamento entre sujeitos e dentro de sujeitos],
+      [Métodos de elicitação: escolha binária, lista de preços múltiplos, bisseção],
+      [Vieses de resposta: aquiescência, desejabilidade social, satisficing],
+    )
+  })
+
+  #eyebrow("Para estudar", top: 9pt)
+
+  #links(
+    [#link("https://www.youtube.com/watch?v=h0pTy8nKW5U")[Teoria do prospecto de Daniel Kahneman], em português (vídeo)],
+    [#link("https://www.youtube.com/watch?v=RfS11SRQC20")[Prospect theory explained at 5 levels of difficulty] (vídeo)],
+    [#link("https://www.behavioraleconomics.com/resources/mini-encyclopedia-of-be/prospect-theory/")[Prospect theory na Mini-Encyclopedia of Behavioral Economics]],
+    [#link("https://www.statsmodels.org/stable/index.html")[statsmodels] para os modelos de aceitação em Python],
+  )
+
+  #eyebrow("Referências", top: 9pt)
+
+  #refs(
+    [Kahneman, D.; Tversky, A. (1979). Prospect theory: an analysis of decision under risk. #emph[Econometrica], 47(2), 263-291. #link("https://doi.org/10.2307/1914185")[doi:10.2307/1914185]],
+    [Priest, G. L.; Klein, B. (1984). The selection of disputes for litigation. #emph[The Journal of Legal Studies], 13(1), 1-55. #link("https://doi.org/10.1086/467732")[doi:10.1086/467732]],
+    [Reis, H. F.; Lara, F. T. (2022). Um estudo empírico dos fatores preditivos da autocomposição. #emph[Revista Direito GV], 18(2), e2221. #link("https://doi.org/10.1590/2317-6172202221")[doi:10.1590/2317-6172202221]],
+  )
+]
+```
+
+```{=typst}
+#pagebreak(weak: true)
+#tema-title(
+  numero: "3",
+  titulo: [Celeridade processual em processos criminais],
+  metodo: "Delphi",
+  pergunta: [O que é, na prática, a duração razoável do processo?],
+  accent: turquesa,
+  accent-text: ink,
+)
+
+#contexto[
+  A Constituição garante a razoável duração do processo, mas não diz o que é
+  razoável. Tribunais, doutrina e prática divergem, e nenhuma base de dados resolve
+  a questão sozinha, porque ela é normativa antes de ser empírica: depende do tipo
+  de crime, da complexidade da prova, da existência de réu preso. Quando não há um
+  número certo a ser medido, uma alternativa é estruturar o desacordo entre quem
+  conhece o problema de perto e observar até onde o consenso consegue chegar.
+]
+
+#two-cols(left-w: 1.22fr, right-w: 1fr, gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Roteiro do trabalho")
+
+  O grupo delimita um tipo de processo criminal ou um caso emblemático que sirva de
+  âncora, já que a duração razoável depende fortemente do contexto, e formula as
+  questões que serão submetidas ao painel.
+
+  O grupo recruta um painel *diversificado, mas viável*. O núcleo mínimo é composto
+  por *advogados criminalistas e acadêmicos* da área. Se conseguirem acesso, incluam
+  membros do *Ministério Público* e *defensores públicos*, que trazem perspectivas
+  opostas sobre o mesmo problema. A participação de magistrados é desejável, mas
+  *opcional*: não travem o trabalho esperando por ela. Comecem com algumas sementes e
+  expandam por bola de neve, e descrevam no relatório a composição efetiva do painel
+  e o que ela deixa de fora. O *anonimato entre os participantes* deve ser preservado
+  ao longo das rodadas, para que a autoridade de um deles não contamine a resposta
+  dos demais.
+
+  O método é aplicado em *rodadas sucessivas*. Na primeira, as perguntas são mais
+  abertas e buscam capturar estimativas e justificativas sobre a duração razoável.
+  Nas seguintes, o grupo devolve aos participantes um resumo estatístico das
+  respostas (mediana, intervalo interquartil, principais argumentos) e pede que
+  reconsiderem suas posições à luz do grupo.
+
+  O grupo define *de antemão* um critério de consenso (por exemplo, redução do
+  intervalo interquartil abaixo de um limiar) e um critério de parada. O relatório
+  apresenta a evolução das respostas entre rodadas, o consenso alcançado e os pontos
+  que permaneceram controversos.
+][
+  #eyebrow("Conceitos essenciais")
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Painel de especialistas: critérios de elegibilidade e diversidade],
+      [Anonimato entre participantes e devolutiva controlada],
+      [Rodadas iterativas e estabilidade das respostas],
+      [Critério de consenso definido antes da coleta],
+      [Mediana e intervalo interquartil como medidas de convergência],
+      [Atrito entre rodadas e seu efeito sobre os resultados],
+      [Diferença entre Delphi, survey e grupo focal],
+      [Delphi clássico, modificado e de política pública],
+    )
+  })
+
+  #eyebrow("Para estudar", top: 9pt)
+
+  #links(
+    [#link("https://www.youtube.com/watch?v=Ce0FEwtpKRg")[Método Delphi], no canal Cientística (vídeo)],
+    [#link("https://www.rand.org/pubs/commentary/2023/10/generating-evidence-using-the-delphi-method.html")[RAND: gerando evidência com o método Delphi]],
+    [#link("https://www.statsmodels.org/stable/index.html")[statsmodels] para resumir e comparar as rodadas em Python],
+  )
+
+  #eyebrow("Referências", top: 9pt)
+
+  #refs(
+    [Hsu, C.-C.; Sandford, B. A. (2007). The Delphi technique: making sense of consensus. #emph[Practical Assessment, Research & Evaluation], 12(10). #link("https://doi.org/10.7275/pdz9-th90")[doi:10.7275/pdz9-th90]],
+    [Akartuna, E. A.; Johnson, S. D.; Thornton, A. (2022). Preventing the money laundering and terrorist financing risks of emerging technologies: an international policy Delphi study. #emph[Technological Forecasting and Social Change], 179, 121632. #link("https://doi.org/10.1016/j.techfore.2022.121632")[doi:10.1016/j.techfore.2022.121632]],
+  )
+]
+```
+
+```{=typst}
+#pagebreak(weak: true)
+#tema-title(
+  numero: "4",
+  titulo: [Percepções sobre estatística e ciência de dados],
+  metodo: "Q-method",
+  pergunta: [Quais são os arquétipos de percepção sobre disciplinas de estatística e ciência de dados?],
+  accent: amarelo,
+  accent-text: ink,
+)
+
+#contexto[
+  Disciplinas quantitativas em cursos de Direito despertam reações muito
+  diferentes: entusiasmo, indiferença, ansiedade, ceticismo sobre a utilidade
+  prática. A média das avaliações institucionais esconde essa variação e sugere uma
+  turma homogênea que não existe. A pergunta relevante não é quantas pessoas gostam
+  da disciplina, e sim quais visões distintas coexistem na turma e o que
+  caracteriza cada uma delas.
+]
+
+#two-cols(left-w: 1.22fr, right-w: 1fr, gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Roteiro do trabalho")
+
+  O grupo inicia construindo o *concourse*, ou seja, o universo de afirmações sobre
+  o tema, coletadas em conversas, avaliações de disciplinas, redes sociais e
+  entrevistas curtas. Desse universo, seleciona a *Q-sample*, um conjunto
+  equilibrado de afirmações (tipicamente entre 30 e 50) que cubra dimensões como
+  relevância, dificuldade, utilidade prática e sentimentos despertados pelas
+  disciplinas.
+
+  Em seguida, o grupo define o *P-set*, isto é, os participantes que farão a
+  ordenação. O P-set não precisa ser grande, mas precisa ser *estruturalmente
+  diverso*: o objetivo do Q-method é mapear os pontos de vista existentes, e não
+  medir quantas pessoas sustentam cada um deles. Cada participante realiza o
+  *Q-sort*, distribuindo as afirmações em uma grade de distribuição quase normal,
+  do discordo totalmente ao concordo totalmente, respeitando o número de posições
+  disponíveis em cada coluna.
+
+  A análise usa *análise fatorial por pessoas* (correlaciona respondentes, e não
+  itens), com rotação (por exemplo, varimax) para extrair os fatores. Cada fator
+  corresponde a um arquétipo de percepção. O grupo interpreta os fatores a partir
+  das *afirmações distintivas e de consenso*, nomeando os perfis (por exemplo, o
+  entusiasta, o pragmático, o ansioso) e descrevendo o que caracteriza cada visão.
+][
+  #eyebrow("Conceitos essenciais")
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Concourse, Q-sample e P-set],
+      [Subjetividade operante: o objeto é o ponto de vista, não a frequência],
+      [Grade de distribuição forçada e quase normal],
+      [Análise fatorial por pessoas (Q) e por variáveis (R)],
+      [Extração (PCA ou centroide) e rotação (varimax ou manual)],
+      [Cargas fatoriais, participantes definidores e fatores bipolares],
+      [Escores z das afirmações, array idealizado e afirmações distintivas],
+      [Afirmações de consenso e narrativa interpretativa de cada fator],
+    )
+  })
+
+  #eyebrow("Para estudar", top: 9pt)
+
+  #links(
+    [#link("https://www.youtube.com/watch?v=cU-rJ7n_t5I")[Metodologia Q e suas aplicações], no canal Cientística (vídeo)],
+    [#link("https://www.youtube.com/watch?v=ZoXwsi2GLOc&list=PLFKu0j9dWNQw8LlNUq3d-DQmf6d2I8V7m&index=2")[QuickQ], série curta da Leeds Beckett University sobre como conduzir um estudo Q],
+    [#link("https://factor-analyzer.readthedocs.io/en/latest/")[factor_analyzer] para fazer a extração e a rotação em Python],
+  )
+
+  #eyebrow("Referências", top: 9pt)
+
+  #refs(
+    [Brown, S. R. (1996). Q methodology and qualitative research. #emph[Qualitative Health Research], 6(4), 561-567. #link("https://doi.org/10.1177/104973239600600408")[doi:10.1177/104973239600600408]],
+  )
+]
+```
+
+```{=typst}
+#pagebreak(weak: true)
+#tema-title(
+  numero: "5",
+  titulo: [Construindo boas petições],
+  metodo: "Conjoint Analysis",
+  pergunta: [Quais petições iniciais são preferidas?],
+  accent: laranja,
+  accent-text: ink,
+)
+
+#contexto[
+  Petições iniciais são lidas sob pressão de tempo por quem decide, e existe muita
+  opinião sobre o que é uma boa petição (mais curta, mais visual, mais direta) com
+  pouca evidência por trás. O problema é que, em documentos reais, as
+  características andam juntas: a petição bem diagramada costuma ser também a mais
+  curta e a mais objetiva. Isolar o efeito de cada característica exige construir
+  as petições de propósito, variando um atributo por vez de forma controlada.
+]
+
+#two-cols(left-w: 1.22fr, right-w: 1fr, gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Roteiro do trabalho")
+
+  O grupo define os *atributos* das petições iniciais que serão testados e os
+  *níveis* de cada atributo (por exemplo, layout limpo ou denso, linguagem formal
+  ou simples, presença ou ausência de estrutura com títulos, extensão curta ou
+  longa, uso de elementos visuais). A escolha dos atributos deve refletir dimensões
+  plausíveis de variação e ser justificada, e não apenas listada.
+
+  Com base nos atributos e níveis, o grupo gera *perfis de petições*. Como o número
+  de combinações cresce rapidamente, recomenda-se usar um *desenho fatorial
+  fracionado* ou um desenho ortogonal para reduzir o número de perfis mantendo a
+  capacidade de estimar os efeitos. Em uma abordagem baseada em escolha, os
+  respondentes escolhem entre conjuntos de petições; em uma abordagem baseada em
+  notas, avaliam cada perfil isoladamente.
+
+  A análise estima as *utilidades parciais (part-worths)* de cada nível e a
+  *importância relativa* de cada atributo, usando modelos de regressão em que os
+  níveis entram como variáveis indicadoras. A leitura é direta: quanto cada nível
+  aumenta ou reduz a preferência em relação ao nível de referência, e qual atributo
+  produz a maior variação.
+
+  O relatório indica quais atributos mais influenciam a preferência, quais
+  combinações são preferidas e como diferentes perfis de respondentes percebem as
+  petições. Vale discutir quem deveria ser o respondente ideal (magistrados,
+  advogados, estudantes, leigos) e o que muda na interpretação conforme essa
+  escolha.
+][
+  #eyebrow("Conceitos essenciais")
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Atributos, níveis e perfis],
+      [Desenho fatorial completo, fracionado e ortogonal],
+      [Conjoint baseado em escolha e conjoint baseado em notas],
+      [Utilidades parciais (part-worths) e importância relativa],
+      [Nível de referência e leitura dos coeficientes da regressão],
+      [Número de tarefas por respondente e satisficing],
+      [Aleatorização dos níveis e efeitos de ordem e de perfil],
+      [Validade externa: preferência declarada e comportamento real],
+    )
+  })
+
+  #eyebrow("Para estudar", top: 9pt)
+
+  #links(
+    [#link("https://www.youtube.com/watch?v=1dsroitlkr8")[Conjoint analysis], no canal Cientística (vídeo)],
+    [#link("https://pydoe3.readthedocs.io/en/latest/")[pyDOE3] para gerar desenhos fatoriais fracionados em Python],
+    [#link("https://www.statsmodels.org/stable/index.html")[statsmodels] para estimar as utilidades parciais],
+  )
+
+  #eyebrow("Referências", top: 9pt)
+
+  #refs(
+    [Hainmueller, J.; Hopkins, D. J.; Yamamoto, T. (2014). Causal inference in conjoint analysis: understanding multidimensional choices via stated preference experiments. #emph[Political Analysis], 22(1), 1-30. #link("https://doi.org/10.1093/pan/mpt024")[doi:10.1093/pan/mpt024]],
+    [Bansak, K.; Hainmueller, J.; Hopkins, D. J.; Yamamoto, T. (2018). The number of choice tasks and survey satisficing in conjoint experiments. #emph[Political Analysis], 26(1), 112-119. #link("https://doi.org/10.1017/pan.2017.40")[doi:10.1017/pan.2017.40]],
+  )
+]
+```
+
+```{=typst}
+#pagebreak(weak: true)
+#tema-title(
+  numero: "6",
+  titulo: [Análise do conteúdo das provas da OAB],
+  metodo: "Análise de conteúdo e cluster",
+  pergunta: [Como são caracterizadas as provas da primeira fase da OAB?],
+  accent: rosa,
+  accent-text: ink,
+)
+
+#contexto[
+  O Exame de Ordem é o filtro de entrada da profissão e organiza o estudo de
+  milhares de pessoas, dos cursinhos ao currículo das faculdades. A primeira fase
+  tem 80 questões objetivas por edição, acumuladas ao longo de dezenas de edições.
+  Circula muita afirmação sobre o que a prova cobra e sobre como ela mudou, quase
+  sempre baseada em impressão. Descrever o que a prova de fato cobra é uma pergunta
+  empírica sobre um corpus de texto grande o bastante para exigir método.
+]
+
+#two-cols(left-w: 1.22fr, right-w: 1fr, gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Roteiro do trabalho")
+
+  O grupo organiza um *banco de dados estruturado* com questões de provas da
+  primeira fase da OAB, registrando informações como enunciado, alternativas, área
+  do direito, edição da prova e, quando disponível, gabarito. É importante
+  documentar as fontes e o período coberto, e verificar a consistência do que foi
+  extraído antes de analisar.
+
+  Na etapa de *análise de conteúdo*, o grupo define um esquema de codificação
+  (categorias temáticas, termos-chave, conceitos associados) e aplica esse esquema
+  às questões, combinando codificação manual com técnicas automáticas de
+  processamento de texto (por exemplo, remoção de stopwords, TF-IDF, embeddings).
+  Se mais de uma pessoa codificar, é preciso medir a *concordância entre
+  codificadores* e reportar essa medida.
+
+  Para o agrupamento, o grupo aplica *técnicas de cluster* (por exemplo, k-means ou
+  clusterização hierárquica) sobre representações vetoriais das questões, buscando
+  grupos coerentes segundo critérios como área do direito ou dificuldade. A escolha
+  do número de clusters precisa ser justificada, e não arbitrada: usem critérios
+  como silhueta ou método do cotovelo, e verifiquem se os grupos fazem sentido
+  substantivo.
+
+  O relatório caracteriza cada cluster, descreve a distribuição das questões entre
+  áreas e discute padrões observados entre edições da prova.
+][
+  #eyebrow("Conceitos essenciais")
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Unidade de registro, unidade de contexto e livro de códigos],
+      [Codificação manual, concordância entre codificadores e kappa],
+      [Pré-processamento: tokenização, stopwords, lematização],
+      [Bag-of-words, TF-IDF e embeddings de sentença],
+      [Redução de dimensionalidade (PCA, UMAP) antes do agrupamento],
+      [k-means, clusterização hierárquica e escolha de k],
+      [Silhueta, método do cotovelo e estabilidade dos clusters],
+      [Validação substantiva: o cluster diz algo sobre o direito?],
+    )
+  })
+
+  #eyebrow("Para estudar", top: 9pt)
+
+  #links(
+    [#link("https://www.youtube.com/watch?v=G_FVa2HKj1g")[Análise de conteúdo], no canal Cientística (vídeo)],
+    [#link("https://scikit-learn.org/stable/modules/feature_extraction.html")[TF-IDF] e #link("https://scikit-learn.org/stable/modules/clustering.html")[clustering] no scikit-learn],
+    [#link("https://www.sbert.net/")[sentence-transformers] para embeddings de sentença em português e #link("https://spacy.io/usage/linguistic-features")[spaCy] para tokenização e lematização],
+    [#link("https://examedeordem.oab.org.br/")[Exame de Ordem Unificado: provas e gabaritos]],
+  )
+
+  #eyebrow("Referências", top: 9pt)
+
+  #refs(
+    [White, M. D.; Marsh, E. E. (2006). Content analysis: a flexible methodology. #emph[Library Trends], 55(1), 22-45. #link("https://doi.org/10.1353/lib.2006.0053")[doi:10.1353/lib.2006.0053]],
+  )
+]
+```
+
+```{=typst}
+#pagebreak(weak: true)
+#tema-title(
+  numero: "7",
+  titulo: [Trajetórias de quem acabou de se formar em Direito],
+  metodo: "Análise de conteúdo e análise temática",
+  pergunta: [O que fazem as pessoas recém-formadas em Direito, e isso varia entre faculdades?],
+  accent: verde,
+  accent-text: ink,
+)
+
+#contexto[
+  O mercado para quem se forma em Direito mudou rápido, e existe pouca informação
+  sistemática sobre o que faz quem acabou de sair da faculdade. As narrativas
+  institucionais tendem a ser otimistas e pouco comparáveis, já que cada escola
+  divulga os próprios números com critérios próprios. Ouvir egressos recentes de
+  faculdades diferentes permite comparar trajetórias e verificar se os diferenciais
+  que cada escola anuncia aparecem no relato de quem passou por ela.
+]
+
+#two-cols(left-w: 1.22fr, right-w: 1fr, gutter: 22pt)[
+  #set text(size: 9pt)
+  #eyebrow("Roteiro do trabalho")
+
+  O público-alvo são *pessoas formadas em Direito que tenham colado grau em 2025 ou
+  depois*. O desenho é *comparativo entre faculdades*: o grupo entrevista
+  necessariamente egressos do Insper e também egressos de outras faculdades,
+  escolhidas de forma justificada (perfis institucionais contrastantes, pública e
+  privada, ou diferentes regiões). A comparação entre instituições é o eixo da
+  análise, e não um detalhe do recrutamento.
+
+  Dentro de cada faculdade, o grupo adota amostragem intencional, buscando variação
+  de inserção profissional, e pode expandir por bola de neve a partir de sementes
+  diferentes. O número de entrevistas não é fixado de antemão: o critério é a
+  *saturação empírica*, isto é, as entrevistas continuam até que novas entrevistas
+  deixem de trazer códigos e temas novos. Como há comparação, a saturação precisa
+  ser avaliada em cada grupo de instituições, e não apenas no conjunto. Cada um dos
+  dois grupos que ficarem com este tema elabora seu próprio roteiro semiestruturado.
+
+  Antes das entrevistas, o grupo cuida dos aspectos éticos: consentimento informado,
+  anonimização e uso responsável dos dados. As entrevistas são conduzidas, gravadas
+  (com autorização) e transcritas.
+
+  A análise combina *análise de conteúdo* e *análise temática*. Seguindo as etapas
+  de Braun e Clarke, o grupo se familiariza com os dados, gera códigos, agrupa
+  códigos em temas, revisa e nomeia os temas. O relatório mostra onde as faculdades
+  convergem e onde divergem, ilustrando com trechos citados de forma correta e
+  preservando o anonimato.
+][
+  #eyebrow("Conceitos essenciais")
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Desenho comparativo: escolha e justificativa das instituições],
+      [Amostragem intencional, por variação máxima e bola de neve],
+      [*Saturação empírica*, avaliada dentro de cada grupo comparado],
+      [Roteiro semiestruturado, perguntas abertas e sondagens],
+      [Consentimento informado, anonimização e dados sensíveis],
+      [Transcrição, familiarização e geração de códigos],
+      [Códigos indutivos e dedutivos; nível semântico e nível latente],
+      [Uso de citações: seleção, contexto e representatividade do trecho],
+    )
+  })
+
+  #eyebrow("Para estudar", top: 9pt)
+
+  #links(
+    [#link("https://www.youtube.com/watch?v=eMURzp9DLu8")[Análise temática e grounded theory], no canal Cientística (vídeo)],
+    [#link("https://www.youtube.com/watch?v=5zFcC10vOVY")[Thematic analysis: an introduction], com Victoria Clarke (vídeo)],
+    [#link("https://www.youtube.com/watch?v=wuIKfjvH6SM")[Entrevista estruturada, semiestruturada e não estruturada] (vídeo)],
+    [Software de análise qualitativa: #link("https://lumivero.com/products/nvivo/")[NVivo] ou #link("https://github.com/luizPF42/qualilab")[QualiLab] (Luiz Pimenta)],
+  )
+
+  #eyebrow("Referências", top: 9pt)
+
+  #refs(
+    [Braun, V.; Clarke, V. (2006). Using thematic analysis in psychology. #emph[Qualitative Research in Psychology], 3(2), 77-101. #link("https://doi.org/10.1191/1478088706qp063oa")[doi:10.1191/1478088706qp063oa]],
+    [Saunders, B. et al. (2018). Saturation in qualitative research: exploring its conceptualization and operationalization. #emph[Quality & Quantity], 52(4), 1893-1907. #link("https://doi.org/10.1007/s11135-017-0574-8")[doi:10.1007/s11135-017-0574-8]],
+  )
+]
+```
+
+# Critérios de avaliação
+
+```{=typst}
+#two-cols(left-w: 1fr, right-w: 1.05fr, gutter: 24pt)[
+  #set text(size: 9.5pt)
+  #eyebrow("Como a nota é composta")
+
+  Cada critério é avaliado em três níveis: *não fez (0%)*, *abaixo do esperado
+  (50%)* e *esperado (100%)*. A nota de cada entrega é a média (ou média ponderada,
+  caso se atribuam pesos) dos critérios da respectiva rubrica. As três entregas
+  (parcial, relatório e dinâmica) têm rubricas próprias.
+
+  Não existe nível acima de 100%: o objetivo é entregar o que foi combinado, com
+  qualidade técnica e honestidade sobre os limites do estudo.
+
+  #eyebrow("O que puxa a nota para baixo", top: 11pt)
+
+  #block(width: 100%, {
+    set text(size: 8.5pt, fill: ink-soft)
+    set par(leading: 0.52em)
+    list(
+      [Método aplicado pela metade, sem as etapas que o caracterizam],
+      [Amostra não descrita, ou descrita de forma que impeça saber como foi obtida],
+      [Resultados apresentados em formato inadequado ao método],
+      [Conclusões que vão além do que os dados sustentam],
+      [Referências ausentes, incorretas ou não verificadas],
+      [Uso de inteligência artificial não declarado, ou usado para gerar dados],
+    )
+  })
+][
+  #eyebrow("O que puxa a nota para cima")
+
+  #cards(cols: 1, gutter: 10pt,
+    card(title: "Decisões justificadas", tone: "accent", accent: brand)[
+      Toda escolha de recorte, amostra e análise vem acompanhada do motivo. Uma
+      escolha simples e bem justificada vale mais que uma escolha sofisticada e
+      inexplicada.
+    ],
+    card(title: "Limitações declaradas", tone: "accent", accent: roxo)[
+      Dizer o que o estudo não consegue responder demonstra domínio do método.
+      Limitação declarada é qualidade, não é defeito.
+    ],
+    card(title: "Trabalho verificável", tone: "accent", accent: turquesa)[
+      Código, instrumento e dicionário de variáveis organizados, de modo que outra
+      pessoa consiga refazer o caminho e chegar aos mesmos números.
+    ],
+  )
+]
+```
+
+# Rubrica 1: Entrega parcial
+
+```{=typst}
+#block(above: 0pt, below: 9pt, text(size: 9pt, fill: ink-soft)[
+  Versão preliminar do relatório com descrição clara do método, status atual da coleta
+  e da análise, e os dados obtidos até o momento. *Não se espera resultado final: espera-se
+  desenho definido, coleta em andamento e clareza sobre o que ainda falta.*
+])
+
+#table(
+  columns: (1.35fr, 2.5fr, 3.05fr, 3.1fr),
+  table.header([Critério], [Não fez (0%)], [Abaixo do esperado (50%)], [Esperado (100%)]),
+  [*Descrição do método*],
+  [Não descreve o método.],
+  [Descreve o método de forma genérica, repetindo o enunciado do tema sem transformá-lo em decisões concretas do grupo.],
+  [Descreve o método e como ele será aplicado neste tema: instrumento, etapas, critérios e o que será medido em cada unidade de análise.],
+
+  [*Status da coleta e da análise*],
+  [Não informa o andamento.],
+  [Informa o andamento de forma vaga ("estamos coletando"), sem números, prazos ou obstáculos encontrados.],
+  [Informa com precisão o que já foi coletado, o que falta, o cronograma restante e os obstáculos encontrados, com as adaptações que eles exigiram.],
+
+  [*Dados compartilhados*],
+  [Não compartilha dados.],
+  [Compartilha dados incompletos, sem organização ou sem explicar o que cada campo significa.],
+  [Compartilha os dados obtidos até o momento em formato utilizável, com dicionário de variáveis ou descrição dos campos e do modo de coleta.],
+
+  [*Organização e clareza do material*],
+  [Material ausente ou ilegível.],
+  [Texto desorganizado, sem estrutura de relatório, ou que mistura plano e resultado sem distinguir os dois.],
+  [Texto organizado na estrutura do relatório final, distinguindo com clareza o que já é resultado do que ainda é plano.],
+)
+```
+
+# Rubrica 2: Relatório
+
+```{=typst}
+#block(above: 0pt, below: 9pt, text(size: 9pt, fill: ink-soft)[
+  Relatório de até 10 páginas com introdução, metodologia, resultados e conclusões.
+  *Deve ser enviado 3 dias antes do dia da primeira apresentação.*
+])
+
+#table(
+  columns: (1.35fr, 2.5fr, 3.05fr, 3.1fr),
+  table.header([Critério], [Não fez (0%)], [Abaixo do esperado (50%)], [Esperado (100%)]),
+  [*Introdução, pergunta e objetivos*],
+  [Ausente, ou o texto não permite identificar qual pergunta o trabalho responde.],
+  [Contextualiza de forma incompleta, ou não deixa clara a pergunta e os objetivos. A relevância do problema é afirmada, mas não sustentada.],
+  [Contextualiza o problema, apresenta pergunta de pesquisa e objetivos com clareza, delimita a unidade de análise e justifica por que a pergunta importa.],
+
+  [*Metodologia, amostra e reprodutibilidade*],
+  [Não descreve método nem dados.],
+  [Descreve o método, a amostra ou o tratamento de forma vaga, pouco replicável ou sem materiais. Faltam critérios de inclusão, filtros ou o instrumento aplicado.],
+  [Descreve método, fonte, amostra e tratamento de forma clara e replicável, com critérios explícitos, código e materiais organizados. O tipo de amostragem é declarado, com suas consequências.],
+
+  [*Adequação e qualidade dos resultados*],
+  [Não apresenta resultados.],
+  [Resultados sem a forma adequada ao método (por exemplo, sem Kaplan-Meier, sem análise fatorial ou sem mapa de temas), com falhas técnicas ou gráficos ilegíveis.],
+  [Resultados na forma esperada para o método, tecnicamente corretos, com gráficos e tabelas claros, legendados e lidos no texto. Medidas de incerteza aparecem quando cabíveis.],
+
+  [*Interpretação, discussão e conclusões*],
+  [Sem interpretação nem conclusões.],
+  [Interpreta de forma superficial ou conclui de modo pouco alinhado aos resultados. Limitações ausentes ou genéricas.],
+  [Interpreta com profundidade e conclui de forma coerente, distingue o que os dados sustentam do que é conjectura, discute limitações específicas e aponta próximos passos.],
+
+  [*Escrita, referências e uso de IA*],
+  [Texto confuso e sem referências.],
+  [Escrita ou formatação irregular, referências incompletas ou não verificadas. Uso de inteligência artificial não declarado.],
+  [Escrita clara, formatação adequada ao limite de páginas, referências corretas e verificadas, citações feitas de forma correta e declaração do uso de IA em apêndice.],
+)
+```
+
+# Rubrica 3: Dinâmica com debate
+
+```{=typst}
+#block(above: 0pt, below: 9pt, text(size: 9pt, fill: ink-soft)[
+  Cada grupo apresenta seus resultados em 7 minutos, responde ao professor, e faz e
+  responde uma pergunta ao outro grupo do mesmo tema. Cada tema dura de 25 a 30 minutos.
+])
+
+#table(
+  columns: (1.35fr, 2.5fr, 3.05fr, 3.1fr),
+  table.header([Critério], [Não fez (0%)], [Abaixo do esperado (50%)], [Esperado (100%)]),
+  [*Apresentação dos resultados e tempo*],
+  [Não apresenta os resultados.],
+  [Apresenta de forma confusa, incompleta ou fora do tempo. Gasta a maior parte dos 7 minutos em contexto e chega aos resultados no fim.],
+  [Apresenta os resultados de forma clara e objetiva, dentro dos 7 minutos, com material visual legível e prioridade para o que foi encontrado.],
+
+  [*Respostas às perguntas do professor*],
+  [Não responde.],
+  [Responde de forma incompleta ou insegura, ou responde outra coisa que não foi perguntada.],
+  [Responde com clareza e demonstra domínio do trabalho, inclusive das decisões metodológicas. Reconhece com honestidade o que o grupo não sabe.],
+
+  [*Pergunta e resposta no debate*],
+  [Não formula nem responde perguntas.],
+  [Pergunta genérica, que poderia ser feita a qualquer trabalho, ou resposta superficial ao outro grupo.],
+  [Formula pergunta pertinente, ancorada no que o outro grupo apresentou, e responde de forma consistente, comparando escolhas e resultados dos dois trabalhos.],
+
+  [*Argumentação, postura e engajamento*],
+  [Alheio ao debate.],
+  [Argumenta de forma frágil ou participa de modo passivo. A participação se concentra em uma ou duas pessoas do grupo.],
+  [Defende os resultados com argumentos sólidos e participa de forma ativa e respeitosa, com envolvimento distribuído entre integrantes do grupo.],
+)
+```

@@ -1,0 +1,16 @@
+# nada de credencial, cache ou ambiente
+.env
+.venv/
+__pycache__/
+*.pyc
+.quarto/
+.ipynb_checkpoints/
+
+# fontes da marca Insper sao licenciadas e nao podem ser redistribuidas
+*.ttf
+*.otf
+
+# documentos internos que nao vao para o publico
+*plano*aula*
+*PlanoDeAula*
+*docente*
