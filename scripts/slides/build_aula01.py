@@ -61,9 +61,9 @@ OBJETIVOS = [
 ]
 
 AVALIACAO = [
-    ("PI", "Prova Intermediária", "21%", AMARELO,
+    ("PI", "Prova Intermediária", "25%", AMARELO,
      "Aulas 14 e 15\n24/09 e 29/09"),
-    ("PF", "Prova Final", "39%", VERMELHO,
+    ("PF", "Prova Final", "35%", VERMELHO,
      "Aulas 30 e 31\n26/11 e 01/12"),
     ("PC", "Pesquisa de Campo", "20%", TURQUESA,
      "Estudo empírico em grupo:\nrelatório e debate"),
@@ -223,8 +223,7 @@ def slide_06_avaliacao(prs, lays):
 
     tb = texto_livre(slide, MARGEM, Inches(2.02), FAIXA, Inches(0.32))
     escrever(tb.text_frame, [
-        {"texto": "Quatro avaliações, dois blocos: provas (PI e PF) e "
-                  "trabalhos (PC e PA).",
+        {"texto": "Quatro avaliações, com pesos que somam 100%.",
          "tamanho": 15, "cor": CINZA_ESCURO, "depois": 0},
     ])
 
@@ -250,74 +249,16 @@ def slide_06_avaliacao(prs, lays):
              "entrelinhas": 1.1, "depois": 0},
         ])
 
-    tb = texto_livre(slide, MARGEM, Inches(5.55), FAIXA, Inches(0.9))
+    tb = texto_livre(slide, MARGEM, Inches(5.48), FAIXA, Inches(1.1))
     escrever(tb.text_frame, [
-        {"texto": "A Pesquisa de Campo (PC) é um estudo empírico em grupo, com "
-                  "um método que não é tratado diretamente nas aulas: são 7 temas "
-                  "e 14 grupos, com relatório de até 10 páginas e debate.",
+        {"texto": "A nota final é a soma das quatro com esses pesos. "
+                  "Não há nota mínima por bloco.",
+         "tamanho": 13, "bold": True, "entrelinhas": 1.15, "depois": 6},
+        {"texto": "A Pesquisa de Campo (PC) é um estudo empírico em grupo, com um "
+                  "método que não vemos em aula: 7 temas, 14 grupos, relatório e debate.",
          "tamanho": 12.5, "cor": CINZA_ESCURO, "entrelinhas": 1.15, "depois": 4},
-        {"texto": "Os Projetos Aplicados (PA) são 8 entregas, a maior parte "
-                  "feita em sala, em apps da disciplina, com correção automática "
-                  "ou feedback por rubrica. As rubricas ficam visíveis na tela.",
-         "tamanho": 12.5, "cor": CINZA_ESCURO, "entrelinhas": 1.15, "depois": 0},
-    ])
-    return slide
-
-
-def slide_07_nota(prs, lays):
-    slide = slide_com_titulo(prs, lays, "Composição da nota final")
-
-    largura = Inches(5.59)
-    vao = Inches(0.32)
-    y = Inches(2.15)
-    altura = Inches(1.62)
-
-    blocos = [
-        ("NP", "Nota de provas", "NP  =  0,35 × PI  +  0,65 × PF", VERMELHO),
-        ("NT", "Nota de trabalhos", "NT  =  0,50 × PC  +  0,50 × PA", TURQUESA),
-    ]
-    for i, (sigla, nome, formula, cor) in enumerate(blocos):
-        x = MARGEM + i * (largura + vao)
-        caixa(slide, x, y, largura, altura,
-              preenchimento=RGBColor(0xF7, 0xF7, 0xF7))
-        caixa(slide, x, y, Inches(0.09), altura, preenchimento=cor)
-        tb = texto_livre(slide, x + Inches(0.30), y + Inches(0.26),
-                         largura - Inches(0.55), altura - Inches(0.4))
-        escrever(tb.text_frame, [
-            {"texto": f"{sigla} · {nome}", "tamanho": 14, "bold": True,
-             "cor": CINZA_ESCURO, "depois": 8},
-            {"texto": formula, "fonte": DISPLAY, "tamanho": 22, "bold": True,
-             "cor": PRETO, "depois": 0},
-        ])
-
-    y = Inches(4.05)
-    regras = [
-        ("Se NP < 5 ou NT < 5", "Nota final  =  mínimo entre NP e NT",
-         VERMELHO, VERMELHO),
-        ("Se NP ≥ 5 e NT ≥ 5", "Nota final  =  0,6 × NP  +  0,4 × NT",
-         VERDE, PRETO),
-    ]
-    for i, (condicao, resultado, cor, cor_texto) in enumerate(regras):
-        x = MARGEM + i * (largura + vao)
-        caixa(slide, x, y, largura, Inches(1.35), borda=CINZA_CLARO)
-        caixa(slide, x, y, Inches(0.09), Inches(1.35), preenchimento=cor)
-        tb = texto_livre(slide, x + Inches(0.30), y + Inches(0.22),
-                         largura - Inches(0.55), Inches(1.0))
-        escrever(tb.text_frame, [
-            {"texto": condicao, "tamanho": 14, "bold": True, "cor": cor_texto,
-             "depois": 6},
-            {"texto": resultado, "tamanho": 16, "depois": 0},
-        ])
-
-    tb = texto_livre(slide, MARGEM, Inches(5.70), FAIXA, Inches(0.95))
-    escrever(tb.text_frame, [
-        {"texto": "A regra existe para que uma reprovação em provas não seja "
-                  "compensada pelo desempenho nos trabalhos, nem o contrário.",
-         "tamanho": 13, "bold": True, "depois": 4},
-        {"texto": "Os pesos informados no sistema (PI 21%, PF 39%, PC 20% e "
-                  "PA 20%) correspondem exatamente a 0,6 × NP + 0,4 × NT, ou "
-                  "seja, à situação em que você alcança o desempenho mínimo "
-                  "nos dois blocos.",
+        {"texto": "Os Projetos Aplicados (PA) são 8 entregas, a maior parte em sala, "
+                  "com correção automática ou rubrica visível na tela.",
          "tamanho": 12.5, "cor": CINZA_ESCURO, "entrelinhas": 1.15, "depois": 0},
     ])
     return slide
@@ -441,7 +382,6 @@ def main():
     slide_04_pergunta(prs, lays)
     slide_05_objetivos(prs, lays)
     slide_06_avaliacao(prs, lays)
-    slide_07_nota(prs, lays)
     slide_08_aulas_pi(prs, lays)
     slide_09_aulas_pf(prs, lays)
     slide_10_dinamicas(prs, lays)
