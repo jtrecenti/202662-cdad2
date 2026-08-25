@@ -338,8 +338,10 @@ def s09_numero_que_nao_e_numero(prs, lays):
          "É a chave do caso, e não uma medida."),
         ("3550308", "código do município (IBGE)", "identificador",
          "São dígitos que nomeiam São Paulo."),
-        ("13", "13ª Câmara de Direito Privado", "categórica nominal",
-         "A 13ª não é maior que a 2ª."),
+        ("13", "número da câmara julgadora", "identificador",
+         "A 13ª não é maior que a 2ª, e o número só nomeia o órgão."),
+        ("2", "polo: 1 ativo, 2 passivo", "categórica nominal",
+         "Aqui o número agrupa, em vez de nomear."),
         ("1116", "código da classe processual", "identificador",
          "Rótulo do CNJ para execução fiscal."),
         ("3", "número de réus no polo passivo", "numérica discreta",
@@ -347,7 +349,7 @@ def s09_numero_que_nao_e_numero(prs, lays):
     ]
 
     tabela_shape = slide.shapes.add_table(
-        len(dados) + 1, 4, MARGEM, Inches(2.50), FAIXA, Inches(2.85)
+        len(dados) + 1, 4, MARGEM, Inches(2.50), FAIXA, Inches(3.27)
     )
     tabela = tabela_shape.table
     tabela_sem_estilo(tabela)
