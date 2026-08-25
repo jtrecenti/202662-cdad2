@@ -2779,16 +2779,23 @@ não representa nada, e não gera legenda:
 
     nb.md("""
 `fill` **dentro** do `aes()` é um mapeamento. A cor passa a representar uma
-variável, cada barra se reparte, e aparece uma legenda:
+variável, cada regime vira duas barras, e aparece uma legenda:
 """)
 
     nb.code("""
 (
     ggplot(penas)
     + aes(x="regime", fill="houve_reincidencia")
-    + geom_bar()
+    + geom_bar(position="dodge")
     + labs(x="Regime inicial", y="Acórdãos")
 )
+""")
+
+    nb.md("""
+> 🤔 O `position="dodge"` põe as barras **lado a lado**. Sem ele, o padrão é
+> empilhar, e aí a fatia de cima de cada regime começa numa altura diferente:
+> comparar de olho fica quase impossível. Rode a mesma célula sem o
+> `position="dodge"` e veja a diferença.
 """)
 
     nb.volta()

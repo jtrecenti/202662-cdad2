@@ -631,7 +631,7 @@ def s11_pintar(prs, lays):
         '+ aes(x="regime")',
         '+ geom_bar(fill="#E50505")',
     ], tamanho=13, barra=T["marca"])
-    imagem_ajustada(slide, fig("r4"), MARGEM, Inches(4.32), largura,
+    imagem_ajustada(slide, fig("s11_tinta"), MARGEM, Inches(4.32), largura,
                     Inches(1.95), moldura=False)
     legenda(slide, MARGEM, Inches(6.38), largura,
             "Vale para todas as barras, não representa nada, e não gera "
@@ -642,13 +642,14 @@ def s11_pintar(prs, lays):
     bloco_codigo(slide, x2, Inches(2.90), largura, Inches(1.28), [
         "ggplot(penas)",
         '+ aes(x="regime", fill="houve_reincidencia")',
-        "+ geom_bar()",
+        '+ geom_bar(position="dodge")',
     ], tamanho=13, barra=T["acento2"])
-    imagem_ajustada(slide, fig("r5"), x2, Inches(4.32), largura, Inches(1.95),
+    imagem_ajustada(slide, fig("s11_variavel"), x2, Inches(4.32), largura,
+                    Inches(1.95),
                     moldura=False)
     legenda(slide, x2, Inches(6.38), largura,
-            "Cada barra se reparte, e aparece legenda: agora a cor mapeia uma "
-            "variável.", tamanho=12)
+            "Cada regime vira duas barras e aparece legenda: agora a cor mapeia "
+            "uma variável.", tamanho=12)
     return slide
 
 
