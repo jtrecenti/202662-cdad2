@@ -4180,7 +4180,9 @@ def montar_aula06() -> Caderno:
             "ler uma nuvem de pontos e uma linha de tendência sem exagerar na conclusão;",
             "comparar uma numérica entre categorias com boxplot;",
             "comparar duas categóricas em contagem e em proporção;",
-            "preparar a tabela com `.assign()` antes de fazer o gráfico.",
+            "preparar a tabela com `.assign()` antes de fazer o gráfico;",
+            "saber quando a altura da barra é contagem (`geom_bar`) e quando "
+            "já é uma conta pronta (`geom_col`).",
         ],
         abertura="""
 Na aula 5 todo gráfico tinha **uma** variável: quantos acórdãos em cada regime,
@@ -4203,6 +4205,11 @@ cobrar e que ainda não apareceu.
 
     nb.indice([
         ("A tabela de hoje", "dados"),
+        ("De onde a gincana parou", "retomada", [
+            ("Uma variável numérica sozinha", "histograma"),
+            ("A coluna que não existe na base", "assign"),
+            ("Contar não é medir: geom_bar e geom_col", "contarmedir"),
+        ]),
         ("Uma forma mais curta de escrever", "curta"),
         ("Duas numéricas: pontos", "numnum", [
             ("A linha de tendência", "smooth"),
@@ -4213,7 +4220,6 @@ cobrar e que ainda não apareceu.
             ("Contagem ou proporção: position", "position"),
         ]),
         ("Preparar a tabela antes do gráfico", "preparar", [
-            ("Criar uma coluna com .assign()", "assign"),
             ("Sair do groupby já com a coluna", "asindex"),
             ("Ordenar as barras com reorder()", "reorder"),
         ]),
@@ -4263,6 +4269,140 @@ penas = (
 )
 
 penas.shape
+""")
+
+    nb.volta()
+
+    # ------------------------------------------------ retomada da gincana
+
+    nb.secao("retomada", "De onde a gincana parou", """
+A gincana da aula 5 não chegou até o fim: ficaram duas rodadas na mesa, e as
+duas voltam aqui. Não é revisão: são três ideias que o **Projeto 02** cobra e
+que ainda não apareceram escritas.
+""")
+
+    nb.sub("histograma", "Uma variável numérica sozinha", """
+Antes de comparar duas variáveis, vale olhar uma. Uma coluna **categórica** vira
+barras, e você já fez isso. Uma coluna **numérica** não tem categorias para
+contar: o que se faz é cortar a variável em faixas e contar quantos casos caem
+em cada uma. Isso é o histograma.
+""")
+
+    nb.operacao(
+        "geom_histogram()",
+        "geom_histogram(bins=20)",
+        "https://plotnine.org/reference/geom_histogram.html",
+    )
+
+    nb.code("""
+(
+    ggplot(penas)
+    + aes(x="pena_anos")
+    + geom_histogram(bins=20)
+    + labs(x="Pena (anos)", y="Acórdãos")
+)
+""")
+
+    nb.md("""
+> 🤔 Troque `bins=20` por `bins=5` e depois por `bins=60`. O número de faixas
+> muda o que o gráfico deixa ver, e não existe número certo: existe número que
+> responde à sua pergunta.
+
+Guarde esta leitura, porque o **boxplot** de hoje é um resumo dela. Onde o
+histograma mostra a forma inteira, o boxplot mostra mediana, quartis e pontos
+fora, e é isso que permite pôr vários lado a lado.
+""")
+
+    nb.sub("assign", "A coluna que não existe na base", """
+Às vezes a coluna que responde à pergunta simplesmente não está na tabela.
+"A capital julga diferente do interior?" precisa de uma coluna que diga capital
+ou interior, e a base só tem `comarca`.
+
+`.assign()` cria essa coluna **dentro** do encadeamento, sem quebrar o pipeline
+em duas partes. O nome novo vai à esquerda do `=`.
+""")
+
+    nb.operacao(
+        ".assign()",
+        "DataFrame.assign(nome_novo=expressao)",
+        "https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.assign.html",
+    )
+
+    nb.code("""
+(
+    criminal
+    .assign(eh_capital=criminal["comarca"] == "São Paulo")
+    .dropna(subset=["pena_anos"])
+    .groupby("eh_capital")
+    .agg(
+        n=("processo", "size"),
+        pena_mediana=("pena_anos", "median"),
+    )
+    .reset_index()
+)
+""")
+
+    nb.md("""
+> 📌 O `.assign()` precisa vir **antes** do `.groupby()` que usa a coluna nova.
+> É a única ordem do pipeline que não pode trocar: a coluna tem que existir para
+> poder ser agrupada. Todas as outras operações acima comutam entre si.
+""")
+
+    nb.sub("contarmedir", "Contar não é medir: geom_bar e geom_col", """
+Duas perguntas parecidas, e dois gráficos diferentes:
+
+* *quantos acórdãos em cada regime?* A altura da barra é uma **contagem**, e
+  quem conta é a geometria.
+* *que proporção dos acórdãos de cada regime é de reincidentes?* A altura é uma
+  **conta que você fez**, e a geometria só desenha o número que já está lá.
+""")
+
+    nb.code("""
+# contar: geom_bar() conta as linhas sozinho, e não existe coluna y
+(
+    ggplot(penas)
+    + aes(x="regime")
+    + geom_bar()
+    + labs(x="Regime inicial", y="Acórdãos")
+)
+""")
+
+    nb.code("""
+# medir: primeiro o pandas faz a conta...
+resumo_regime = (
+    penas
+    .groupby("regime", as_index=False, observed=True)
+    .agg(prop_reincidencia=("houve_reincidencia", "mean"))
+)
+
+resumo_regime
+""")
+
+    nb.md("""
+Repare no `"mean"` aplicado a `houve_reincidencia`, que é uma coluna de
+verdadeiro e falso. A média de uma coluna assim **é** a proporção de
+verdadeiros: verdadeiro conta como 1, falso como 0, e a média de 1 e 0 é a
+fração de 1. É o jeito mais curto de calcular proporção em pandas, e o Projeto
+02 usa isso nos dois desafios de barras e de linhas.
+""")
+
+    nb.code("""
+# ...e aí o plotnine só desenha a altura que já está na coluna y
+(
+    ggplot(resumo_regime)
+    + aes(x="regime", y="prop_reincidencia")
+    + geom_col()
+    + labs(x="Regime inicial", y="Proporção com reincidência")
+)
+""")
+
+    nb.md("""
+> ⚠️ Trocar `geom_col()` por `geom_bar()` aqui não dá erro: dá três barras de
+> altura 1, porque cada regime tem uma linha na tabela `resumo_regime` e o
+> `geom_bar()` conta linhas. Vale rodar para ver.
+
+**A regra:** a altura já está na tabela? `geom_col()`. A altura é o número de
+linhas? `geom_bar()`.
 """)
 
     nb.volta()
@@ -4563,29 +4703,9 @@ proporção sozinho, dentro da geometria.
     # ------------------------------------------------ preparar a tabela
 
     nb.secao("preparar", "Preparar a tabela antes do gráfico", """
-Nem todo gráfico sai da tabela crua. Quando a altura da barra é uma conta, o
-pandas faz a conta primeiro e o plotnine só desenha. São três operações, e as
-três caem no **Projeto 02**.
-""")
-
-    nb.sub("assign", "Criar uma coluna com .assign()", """
-`.assign()` cria uma coluna nova **dentro** do encadeamento, sem quebrar o
-pipeline em duas partes. O nome da coluna nova vai à esquerda do `=`.
-""")
-
-    nb.operacao(
-        ".assign()",
-        'DataFrame.assign(nome_novo=expressao)',
-        "https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.assign.html",
-    )
-
-    nb.code("""
-(
-    criminal
-    .assign(ementa_longa=criminal["n_palavras_ementa"] > 150)
-    [["processo", "n_palavras_ementa", "ementa_longa"]]
-    .head(5)
-)
+Você já viu a primeira operação desta lista lá em cima, no `.assign()`. Faltam
+duas, e as duas caem no **Projeto 02**: um atalho para sair do `groupby` já com
+a coluna, e o jeito de ordenar barras.
 """)
 
     nb.sub("asindex", "Sair do groupby já com a coluna", """
