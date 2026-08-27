@@ -584,42 +584,88 @@ def s04_forma_curta(prs, lays):
     return slide
 
 
+def s05b_histograma(prs, lays):
+    """Fecha a parte de uma variavel: a numerica sozinha."""
+    slide = slide_com_titulo(prs, lays, "Uma numérica: o histograma", EYEBROW)
+
+    legenda(slide, MARGEM, Inches(1.94), FAIXA,
+            "Categórica tem categorias para contar. Numérica não tem: o que se "
+            "faz é cortar o intervalo em faixas e contar cada faixa.")
+
+    bloco_codigo(slide, MARGEM, Inches(2.48), Inches(6.30), Inches(1.35), [
+        "(",
+        '    ggplot(penas, aes(x="pena_anos"))',
+        "    + geom_histogram(bins=20)",
+        ")",
+    ], tamanho=12, barra=ROXO)
+
+    partes = [
+        ("cada barra", "uma faixa de valores, não uma categoria"),
+        ("a altura", "quantos casos caem naquela faixa"),
+        ("bins=", "quantas faixas. Muda o que o gráfico deixa ver"),
+        ("não há y", "a altura é contada pela geometria"),
+    ]
+    y = Inches(4.25)
+    for nome, oque in partes:
+        tb = texto_livre(slide, MARGEM, y, Inches(1.90), Inches(0.32))
+        escrever(tb.text_frame, [
+            {"texto": nome, "tamanho": 13, "bold": True, "depois": 0}])
+        tb = texto_livre(slide, MARGEM + Inches(2.00), y, Inches(4.30),
+                         Inches(0.32))
+        escrever(tb.text_frame, [
+            {"texto": oque, "tamanho": 13, "cor": CINZA_ESCURO, "depois": 0}])
+        y += Inches(0.42)
+
+    imagem_ajustada(slide, os.path.join(FIGURAS, "histograma.png"),
+                    MARGEM + Inches(6.85), Inches(2.40), Inches(4.65),
+                    Inches(3.40), moldura=False)
+    legenda(slide, MARGEM + Inches(6.85), Inches(5.95), Inches(4.65),
+            "Rode com bins=5 e com bins=60. Não existe número certo: existe o "
+            "que responde à sua pergunta.", tamanho=12)
+    return slide
+
+
 def s05_pontos(prs, lays):
+    """Duas numericas. Vem antes do boxplot: e a leitura mais direta de duas
+    variaveis, uma em cada eixo, sem forma nova para aprender."""
     slide = slide_com_titulo(prs, lays, "Duas numéricas: pontos", EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.94), FAIXA,
-            "Um ponto por linha da tabela, com a posição dada pelas duas "
-            "colunas. geom_smooth() acrescenta a reta que resume a nuvem.")
+            "Uma variável em cada eixo, e um ponto por linha da tabela. É o "
+            "gráfico mais direto de duas variáveis.")
 
-    bloco_codigo(slide, MARGEM, Inches(2.48), Inches(6.30), Inches(1.60), [
+    bloco_codigo(slide, MARGEM, Inches(2.48), Inches(6.30), Inches(1.55), [
         "(",
         '    ggplot(penas, aes(x="n_palavras_ementa", y="pena_anos"))',
         "    + geom_point(alpha=0.4)",
-        '    + geom_smooth(method="lm", color="#E50505")',
+        '    + geom_smooth(method="lm")',
         ")",
     ], tamanho=12, barra=TURQUESA)
 
-    legenda(slide, MARGEM, Inches(4.30), Inches(6.30),
-            "alpha vai fora do aes(): é um valor fixo, e serve para enxergar "
-            "os pontos empilhados uns sobre os outros.", tamanho=12)
+    partes = [
+        ("cada ponto", "um acórdão, com as duas medidas dele"),
+        ("alpha=0.4", "transparência. Fora do aes(): é valor fixo"),
+        ("geom_smooth", "a reta que resume a direção da nuvem"),
+        ("a leitura", "a reta é quase plana, e isso é uma resposta"),
+    ]
+    y = Inches(4.45)
+    for nome, oque in partes:
+        tb = texto_livre(slide, MARGEM, y, Inches(1.90), Inches(0.32))
+        escrever(tb.text_frame, [
+            {"texto": nome, "tamanho": 13, "bold": True, "depois": 0}])
+        tb = texto_livre(slide, MARGEM + Inches(2.00), y, Inches(4.30),
+                         Inches(0.32))
+        escrever(tb.text_frame, [
+            {"texto": oque, "tamanho": 13, "cor": CINZA_ESCURO, "depois": 0}])
+        y += Inches(0.42)
 
     imagem_ajustada(slide, os.path.join(FIGURAS, "pontos_smooth.png"),
-                    MARGEM + Inches(6.85), Inches(2.30), Inches(4.65),
-                    Inches(3.20), moldura=False)
-
-    caixa(slide, MARGEM, Inches(5.10), Inches(6.30), Inches(1.35),
-          preenchimento=PRETO)
-    tb = texto_livre(slide, MARGEM + Inches(0.28), Inches(5.28), Inches(5.75),
-                     Inches(1.1))
-    escrever(tb.text_frame, [
-        {"texto": "A reta é quase plana, e isso é uma resposta.",
-         "tamanho": 15, "bold": True, "cor": BRANCO, "depois": 4},
-        {"texto": "O tamanho da ementa não diz quase nada sobre a pena. "
-                  "Gráfico que não mostra relação também responde à pergunta.",
-         "tamanho": 12.5, "cor": BRANCO, "depois": 0},
-    ])
+                    MARGEM + Inches(6.85), Inches(2.40), Inches(4.65),
+                    Inches(3.40), moldura=False)
+    legenda(slide, MARGEM + Inches(6.85), Inches(5.95), Inches(4.65),
+            "O tamanho da ementa não diz quase nada sobre a pena. Gráfico que "
+            "não mostra relação também responde à pergunta.", tamanho=12)
     return slide
-
 
 def s06_nao_diz(prs, lays):
     slide = slide_com_titulo(prs, lays, "O que a reta não diz", EYEBROW)
@@ -936,10 +982,10 @@ def main():
     # tambem saiu do Projeto 02 e virou material extra no notebook.
     for construir in (s01_capa,
                       s02b_retomada_pipeline, s02c_retomada_grafico,
-                      s03_assign, s04_proporcao,
+                      s03_assign, s04_proporcao, s05b_histograma,
                       s03_ideia, s04_forma_curta,
                       s08a_position_codigo, s08b_position_resultado,
-                      s07_boxplot,
+                      s05_pontos, s07_boxplot,
                       s09b_catalogo_uni, s09c_catalogo_bi,
                       s09b_univariados, s10_tabela, s09c_datatoviz):
         construir(prs, lays)
