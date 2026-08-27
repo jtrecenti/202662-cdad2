@@ -85,6 +85,13 @@ def figuras(penas: pd.DataFrame) -> dict:
             ggplot(penas, aes(x="regime"))
             + geom_bar()
             + labs(x="Regime inicial", y="Acórdãos")),
+        # a proporcao de acordaos por regime, no tamanho dos outros dois do
+        # slide de contagem contra proporcao: e o MESMO desenho do geom_bar,
+        # so que com o eixo y em fracao. E esse o ponto do slide.
+        "prop_acordaos": (
+            ggplot(freq, aes(x="regime", y="prop"))
+            + geom_col(fill="#E50505")
+            + labs(x="Regime inicial", y="Proporção dos acórdãos")),
         "cat_prop": (
             ggplot(freq, aes(x="regime", y="prop"))
             + geom_col()
@@ -172,6 +179,7 @@ FUNDO_BRANCO = theme(
 )
 
 TAMANHO = {
+    "prop_acordaos": (4.5, 2.9),
     "cat_freq": (3.4, 2.6),
     "cat_prop": (3.4, 2.6),
     "num_hist": (3.4, 2.6),

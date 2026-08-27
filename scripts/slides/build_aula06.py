@@ -537,13 +537,60 @@ def s03_assign(prs, lays):
     return slide
 
 
-def s04_proporcao(prs, lays):
-    """A rodada 6: media de verdadeiro/falso e proporcao, e geom_col."""
+def s04_proporcao_a(prs, lays):
+    """O mesmo grafico por dois caminhos.
+
+    A proporcao de acordaos por regime desenha exatamente a mesma coisa que o
+    geom_bar, so que com o eixo y em fracao. E isso que isola a diferenca entre
+    as duas geometrias: nao e o grafico que muda, e quem faz a conta. O slide
+    seguinte troca a altura por outra coisa, e ai o desenho muda.
+    """
     slide = novo_slide(prs, lays, "Contagem vs proporção", EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.94), FAIXA,
-            "A outra rodada que ficou. Duas perguntas parecidas, dois gráficos "
-            "diferentes, e a diferença está em quem faz a conta.")
+            "O mesmo gráfico por dois caminhos. Repare que o desenho é "
+            "idêntico: só o eixo y muda de contagem para fração.")
+
+    etiqueta(slide, MARGEM, Inches(2.42), Inches(5.30), Inches(0.40),
+             "quantos? a geometria conta: geom_bar()", T["neutro"])
+    bloco_codigo(slide, MARGEM, Inches(2.94), Inches(5.30), Inches(1.95), [
+        "(",
+        '    ggplot(penas, aes(x="regime"))',
+        "    + geom_bar()",
+        ")",
+    ], tamanho=11.5, barra=T["neutro"])
+    imagem_ajustada(slide, fig("retomada_bar"),
+                    MARGEM, Inches(5.05), Inches(5.30), Inches(2.15),
+                    moldura=False)
+
+    x2 = MARGEM + Inches(5.75)
+    etiqueta(slide, x2, Inches(2.42), Inches(5.75), Inches(0.40),
+             "que fração? a conta é sua: geom_col()", T["marca"])
+    bloco_codigo(slide, x2, Inches(2.94), Inches(5.75), Inches(1.95), [
+        "resumo = (",
+        '    penas.groupby("regime", as_index=False)',
+        '    .agg(n=("processo", "size"))',
+        ")",
+        'resumo["prop"] = resumo["n"] / resumo["n"].sum()',
+        "(",
+        '    ggplot(resumo, aes(x="regime", y="prop"))',
+        "    + geom_col()",
+        ")",
+    ], tamanho=9.5, barra=T["marca"])
+    imagem_ajustada(slide, fig("prop_acordaos"),
+                    x2, Inches(5.05), Inches(5.30), Inches(2.15),
+                    moldura=False)
+    return slide
+
+
+def s04_proporcao(prs, lays):
+    """A rodada 6: media de verdadeiro/falso e proporcao, e geom_col."""
+    slide = novo_slide(prs, lays, "A altura pode ser qualquer conta", EYEBROW)
+
+    legenda(slide, MARGEM, Inches(1.94), FAIXA,
+            "Agora a coluna y é outra coisa, e o desenho muda junto. O "
+            "geom_col() não serve só para refazer a contagem: ele desenha "
+            "qualquer altura que você tenha calculado.")
 
     # A ideia de cada lado vai na etiqueta, e o codigo inteiro no bloco: era o
     # ggplot da direita que estava escrito em prosa, embaixo, onde ninguem le.
@@ -563,7 +610,7 @@ def s04_proporcao(prs, lays):
     # direita: medir
     x2 = MARGEM + Inches(5.75)
     etiqueta(slide, x2, Inches(2.42), Inches(5.75), Inches(0.40),
-             "que proporção? a conta é sua: geom_col()", T["marca"])
+             "que proporção é reincidente? geom_col()", T["marca"])
     bloco_codigo(slide, x2, Inches(2.94), Inches(5.75), Inches(1.95), [
         "resumo = (",
         '    penas.groupby("regime", as_index=False)',
@@ -1072,7 +1119,8 @@ def montar(escuro: bool) -> str:
     # tambem saiu do Projeto 02 e virou material extra no notebook.
     for construir in (s01_capa,
                       s02b_retomada_pipeline, s02c_retomada_grafico,
-                      s03_assign, s04_proporcao, s05b_histograma,
+                      s03_assign, s04_proporcao_a, s04_proporcao,
+                      s05b_histograma,
                       s03_ideia, s04_forma_curta,
                       s08a_position_codigo, s08b_position_resultado,
                       s05_pontos, s07_boxplot,
