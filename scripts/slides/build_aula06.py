@@ -549,7 +549,8 @@ def s04_proporcao_a(prs, lays):
 
     legenda(slide, MARGEM, Inches(1.94), FAIXA,
             "O mesmo gráfico por dois caminhos. Repare que o desenho é "
-            "idêntico: só o eixo y muda de contagem para fração.")
+            "idêntico: só o eixo y muda de contagem para fração. O "
+            "value_counts() conta e divide de uma vez.")
 
     etiqueta(slide, MARGEM, Inches(2.42), Inches(5.30), Inches(0.40),
              "quantos? a geometria conta: geom_bar()", T["neutro"])
@@ -568,15 +569,15 @@ def s04_proporcao_a(prs, lays):
              "que fração? a conta é sua: geom_col()", T["marca"])
     bloco_codigo(slide, x2, Inches(2.94), Inches(5.75), Inches(1.95), [
         "resumo = (",
-        '    penas.groupby("regime", as_index=False)',
-        '    .agg(n=("processo", "size"))',
+        '    penas["regime"]',
+        "    .value_counts(normalize=True)",
+        "    .reset_index()",
         ")",
-        'resumo["prop"] = resumo["n"] / resumo["n"].sum()',
         "(",
-        '    ggplot(resumo, aes(x="regime", y="prop"))',
+        '    ggplot(resumo, aes(x="regime", y="proportion"))',
         "    + geom_col()",
         ")",
-    ], tamanho=9.5, barra=T["marca"])
+    ], tamanho=10.5, barra=T["marca"])
     imagem_ajustada(slide, fig("prop_acordaos"),
                     x2, Inches(5.05), Inches(5.30), Inches(2.15),
                     moldura=False)
@@ -678,8 +679,9 @@ def s04_forma_curta(prs, lays):
                              EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.98), FAIXA,
-            "O aes() pode ir dentro do ggplot(), como segundo argumento. "
-            "As duas células produzem exatamente o mesmo gráfico.")
+            "Antes de seguir: o aes() pode ir dentro do ggplot(), como segundo "
+            "argumento. As duas células produzem exatamente o mesmo gráfico, e "
+            "é a forma curta que aparece daqui em diante.")
 
     largura = Inches(5.55)
     x2 = MARGEM + largura + Inches(0.40)
@@ -1117,11 +1119,15 @@ def montar(escuro: bool) -> str:
     #
     # Saiu o slide de `reorder()`: nao ha tempo para ele, e por isso ele
     # tambem saiu do Projeto 02 e virou material extra no notebook.
+    # A forma curta vem logo depois da gramatica: todos os slides seguintes ja
+    # escrevem `ggplot(dados, aes(...))`, e apresenta-la depois deixava a turma
+    # lendo por quatro slides uma sintaxe que ainda nao tinha sido explicada.
     for construir in (s01_capa,
                       s02b_retomada_pipeline, s02c_retomada_grafico,
+                      s04_forma_curta,
                       s03_assign, s04_proporcao_a, s04_proporcao,
                       s05b_histograma,
-                      s03_ideia, s04_forma_curta,
+                      s03_ideia,
                       s08a_position_codigo, s08b_position_resultado,
                       s05_pontos, s07_boxplot,
                       s09b_catalogo_uni, s09c_catalogo_bi,

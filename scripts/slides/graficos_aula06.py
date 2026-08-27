@@ -64,11 +64,10 @@ def figuras(penas: pd.DataFrame) -> dict:
     )
 
     # ---- o catalogo de exemplos, um por tipo de grafico -------------------
-    # frequencia relativa de uma categorica: o pandas faz a divisao e o
-    # plotnine so desenha. Sem lambda, que a turma nao viu.
-    freq = penas.groupby("regime", as_index=False, observed=True).agg(
-        n=("processo", "size"))
-    freq["prop"] = freq["n"] / freq["n"].sum()
+    # frequencia relativa de uma categorica. O value_counts ja devolve a
+    # divisao feita, e o reset_index transforma em tabela: sao duas linhas no
+    # lugar de quatro, e e o codigo que aparece no slide.
+    freq = penas["regime"].value_counts(normalize=True).reset_index()
 
     # serie temporal: a base criminal tem quatro dias de julgamento, e nao da
     # serie nenhuma. Esta e a base de saude da aula 2, por mes de ajuizamento.
@@ -89,11 +88,11 @@ def figuras(penas: pd.DataFrame) -> dict:
         # slide de contagem contra proporcao: e o MESMO desenho do geom_bar,
         # so que com o eixo y em fracao. E esse o ponto do slide.
         "prop_acordaos": (
-            ggplot(freq, aes(x="regime", y="prop"))
+            ggplot(freq, aes(x="regime", y="proportion"))
             + geom_col(fill="#E50505")
             + labs(x="Regime inicial", y="Proporção dos acórdãos")),
         "cat_prop": (
-            ggplot(freq, aes(x="regime", y="prop"))
+            ggplot(freq, aes(x="regime", y="proportion"))
             + geom_col()
             + labs(x="Regime inicial", y="Proporção")),
         "num_hist": (
