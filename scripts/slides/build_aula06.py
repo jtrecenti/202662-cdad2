@@ -76,7 +76,7 @@ def s02_plano(prs, lays):
 
     legenda(slide, MARGEM, Inches(1.98), FAIXA,
             "Aula curta e projeto longo. A segunda hora inteira é o Projeto 02, "
-            "individual e valendo nota.")
+            "em grupo e valendo nota.")
 
     itens = [
         ("22 min", "Slides", "as duas rodadas que faltaram da gincana, e de "
@@ -550,8 +550,8 @@ def s11_projeto(prs, lays):
     slide = slide_com_titulo(prs, lays, "Projeto 02", EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.94), FAIXA,
-            "Individual, valendo nota, uma hora. É a Gincana do Pipeline de "
-            "terça-feira, sozinho e no computador.")
+            "Em grupo, valendo nota, uma hora. É a Gincana do Pipeline de "
+            "terça-feira, no computador.")
 
     passos = [
         ("Três desafios", "cada um com uma pergunta e a imagem do gráfico "
