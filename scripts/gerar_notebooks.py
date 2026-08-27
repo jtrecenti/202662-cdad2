@@ -4221,7 +4221,7 @@ cobrar e que ainda não apareceu.
         ]),
         ("Preparar a tabela antes do gráfico", "preparar", [
             ("Sair do groupby já com a coluna", "asindex"),
-            ("Ordenar as barras com reorder()", "reorder"),
+            ("EXTRA: ordenar as barras com reorder()", "reorder"),
         ]),
         ("Que gráfico para que par de variáveis", "escolha"),
         ("Exercícios", "exercicios", [
@@ -4703,9 +4703,9 @@ proporção sozinho, dentro da geometria.
     # ------------------------------------------------ preparar a tabela
 
     nb.secao("preparar", "Preparar a tabela antes do gráfico", """
-Você já viu a primeira operação desta lista lá em cima, no `.assign()`. Faltam
-duas, e as duas caem no **Projeto 02**: um atalho para sair do `groupby` já com
-a coluna, e o jeito de ordenar barras.
+Você já viu a primeira operação desta lista lá em cima, no `.assign()`. Falta
+uma que cai no projeto, o atalho para sair do `groupby` já com a coluna, e uma
+extra, o jeito de ordenar barras.
 """)
 
     nb.sub("asindex", "Sair do groupby já com a coluna", """
@@ -4751,7 +4751,11 @@ combinação, e é a tabela típica de um gráfico com `color` ou `fill`.
 )
 """)
 
-    nb.sub("reorder", "Ordenar as barras com reorder()", """
+    nb.sub("reorder", "EXTRA: ordenar as barras com reorder()", """
+> 🎁 Esta parte é **extra**: não foi apresentada em aula e o projeto não cobra
+> ela. Está aqui porque é a primeira coisa que você vai querer quando fizer um
+> gráfico de barras por conta própria.
+
 Ordenar a **tabela** com `.sort_values()` não reordena as **barras**: o plotnine
 usa a ordem das categorias, não a ordem das linhas. Quem ordena barra é o
 `reorder()`, escrito dentro do `aes()`.
@@ -4794,8 +4798,8 @@ resumo_comarca
 
     nb.md("""
 Repare que a altura já estava calculada na coluna `pena_mediana`, então a
-geometria é `geom_col()`, e não `geom_bar()`. É a pegadinha da rodada 6 da
-gincana, e ela vai reaparecer no projeto.
+geometria é `geom_col()`, e não `geom_bar()`. Essa parte **não** é extra: é a
+pegadinha da rodada 6 da gincana, e ela reaparece no projeto.
 """)
 
     nb.volta()

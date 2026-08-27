@@ -356,8 +356,7 @@ def s09b_univariados(prs, lays):
 
 def s09c_datatoviz(prs, lays):
     """O data-to-viz, para quando a duvida aparecer fora da aula."""
-    slide = slide_com_titulo(prs, lays, "Quando a dúvida vier sozinha",
-                             EYEBROW)
+    slide = slide_com_titulo(prs, lays, "From data to viz", EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.94), FAIXA,
             "As tabelas destes slides cobrem o que a disciplina usa. Para o "
@@ -450,7 +449,7 @@ def s03_assign(prs, lays):
 
 def s04_proporcao(prs, lays):
     """A rodada 6: media de verdadeiro/falso e proporcao, e geom_col."""
-    slide = slide_com_titulo(prs, lays, "Contar não é medir", EYEBROW)
+    slide = slide_com_titulo(prs, lays, "Contagem vs proporção", EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.94), FAIXA,
             "A outra rodada que ficou. Duas perguntas parecidas, dois gráficos "
@@ -703,47 +702,44 @@ def s07_boxplot(prs, lays):
 
 
 def s08a_position_codigo(prs, lays):
-    """O position em codigo. O resultado vem no slide seguinte, de proposito:
-    a turma decide qual dos tres responde a pergunta antes de ver o desenho."""
+    """Os tres codigos completos, nas mesmas colunas em que o slide seguinte
+    poe os tres graficos. Ver o codigo e depois o desenho no mesmo lugar e o
+    que deixa a comparacao imediata."""
     slide = slide_com_titulo(prs, lays, "Duas categóricas: o position",
                              EYEBROW)
 
-    legenda(slide, MARGEM, Inches(1.94), FAIXA,
+    legenda(slide, MARGEM, Inches(1.90), FAIXA,
             "As mesmas duas variáveis, a mesma geometria, três gráficos "
             "diferentes. Só muda o argumento position.")
 
-    bloco_codigo(slide, MARGEM, Inches(2.60), FAIXA, Inches(1.30), [
-        "(",
-        '    ggplot(penas, aes(x="regime", fill="houve_reincidencia"))',
-        "    + geom_bar(position=...)",
-        ")",
-    ], tamanho=13, barra=ROXO)
-
-    formas = [
-        ('position="stack"', "o padrão: quantos casos, empilhados", TURQUESA),
-        ('position="fill"', "todas as barras com altura 1: proporção", VERMELHO),
-        ('position="dodge"', "lado a lado: contagem, sem empilhar", LARANJA),
+    casos = [
+        ('position="stack"', TURQUESA, "stack",
+         "o padrão: quantos casos, empilhados"),
+        ('position="fill"', VERMELHO, "fill",
+         "todas as barras com altura 1: proporção"),
+        ('position="dodge"', LARANJA, "dodge",
+         "lado a lado: contagem, sem empilhar"),
     ]
-    y = Inches(4.30)
-    for codigo, oque, cor in formas:
-        caixa(slide, MARGEM, y, Inches(0.09), Inches(0.52), preenchimento=cor)
-        tb = texto_livre(slide, MARGEM + Inches(0.28), y - Inches(0.04),
-                         Inches(3.40), Inches(0.58))
-        escrever(tb.text_frame, [{"texto": codigo, "fonte": MONO,
-                                  "tamanho": 14, "bold": True, "depois": 0}])
-        tb = texto_livre(slide, MARGEM + Inches(3.90), y - Inches(0.04),
-                         Inches(7.00), Inches(0.58))
-        escrever(tb.text_frame, [{"texto": oque, "tamanho": 13.5,
+
+    largura = Inches(3.70)
+    passo = largura + Inches(0.20)
+    for i, (rotulo, cor, valor, oque) in enumerate(casos):
+        x = MARGEM + i * passo
+        etiqueta(slide, x, Inches(2.45), largura, Inches(0.40), rotulo, cor)
+        bloco_codigo(slide, x, Inches(3.00), largura, Inches(2.05), [
+            "(",
+            "    ggplot(",
+            "        penas,",
+            '        aes(x="regime",',
+            '            fill="houve_reincidencia")',
+            "    )",
+            f'    + geom_bar(position="{valor}")',
+            ")",
+        ], tamanho=10, barra=cor)
+        tb = texto_livre(slide, x, Inches(5.20), largura, Inches(0.70))
+        escrever(tb.text_frame, [{"texto": oque, "tamanho": 12.5,
                                   "cor": CINZA_ESCURO, "depois": 0}])
-        y += Inches(0.66)
-
-    painel(slide, MARGEM, Inches(6.35), FAIXA, Inches(0.62), [
-        {"texto": "Antes de virar o slide: qual dos três responde \"a "
-                  "proporção de reincidência muda conforme o regime\"?",
-         "tamanho": 15, "bold": True, "depois": 0},
-    ], inverso=True, recuo=0.42)
     return slide
-
 
 def s08b_position_resultado(prs, lays):
     """Os tres resultados lado a lado."""
@@ -932,16 +928,20 @@ def main():
     # duas rodadas que a gincana nao alcancou, e so entao vai para duas
     # variaveis. Os graficos de UMA variavel voltam logo antes da tabela de
     # pares, junto com o data-to-viz: e ali que a pessoa decide o que usar.
-    for construir in (s01_capa, s02_plano,
+    # O boxplot vem DEPOIS das barras: a aula sobe de uma variavel para duas
+    # pelo caminho mais curto, que e acrescentar cor a um grafico de barras que
+    # a turma ja sabe ler. A caixa e forma nova, e entra depois.
+    #
+    # Saiu o slide de `reorder()`: nao ha tempo para ele, e por isso ele
+    # tambem saiu do Projeto 02 e virou material extra no notebook.
+    for construir in (s01_capa,
                       s02b_retomada_pipeline, s02c_retomada_grafico,
                       s03_assign, s04_proporcao,
                       s03_ideia, s04_forma_curta,
-                      s07_boxplot,
                       s08a_position_codigo, s08b_position_resultado,
-                      s09_preparar,
+                      s07_boxplot,
                       s09b_catalogo_uni, s09c_catalogo_bi,
-                      s09b_univariados, s10_tabela, s09c_datatoviz,
-                      s11_projeto):
+                      s09b_univariados, s10_tabela, s09c_datatoviz):
         construir(prs, lays)
 
     n = gravar(prs, SAIDA, titulo="Aula 6: gráficos de duas variáveis")
