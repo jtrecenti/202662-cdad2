@@ -22,7 +22,8 @@ from pptx.util import Inches
 from insper import (
     BRANCO, CINZA, CINZA_CLARO, CINZA_ESCURO, FAIXA, LARANJA, MARGEM, PRETO,
     QUASE_BRANCO, ROXO, TURQUESA, VERDE, VERMELHO, caixa, celula, deck_limpo,
-    escrever, gravar, imagem_ajustada, layouts, slide_capa, slide_com_titulo,
+    escrever as escrever_insper, gravar, imagem_ajustada, layouts,
+    slide_capa, slide_com_titulo,
     tabela_sem_estilo, texto_livre,
 )
 
@@ -42,13 +43,16 @@ MONO = "Consolas"
 # em sala com projetor fraco o fundo claro estoura; o que muda e so o
 # dicionario abaixo, trocado antes de montar.
 
-GRAFITE = RGBColor(0x14, 0x16, 0x1A)
-GRAFITE_CLARO = RGBColor(0x22, 0x25, 0x2B)
-CINZA_TEXTO = RGBColor(0xC9, 0xCC, 0xD2)
-VERMELHO_CLARO = RGBColor(0xFF, 0x6B, 0x6B)
-TURQUESA_CLARO = RGBColor(0x5A, 0xD8, 0xA6)
-ROXO_CLARO = RGBColor(0xB4, 0x7D, 0xE0)
-LARANJA_CLARO = RGBColor(0xFF, 0xB2, 0x6B)
+# O deck escuro e lido do fundo de uma sala, num projetor que come contraste.
+# Por isso o fundo e quase preto, o texto secundario e quase branco (e nao
+# cinza medio, que some), e a superficie das caixas fica bem acima do fundo.
+GRAFITE = RGBColor(0x0D, 0x0F, 0x12)
+GRAFITE_CLARO = RGBColor(0x28, 0x2C, 0x34)
+CINZA_TEXTO = RGBColor(0xE8, 0xEA, 0xEE)
+VERMELHO_CLARO = RGBColor(0xFF, 0x7B, 0x7B)
+TURQUESA_CLARO = RGBColor(0x6F, 0xE6, 0xB6)
+ROXO_CLARO = RGBColor(0xC4, 0x95, 0xEC)
+LARANJA_CLARO = RGBColor(0xFF, 0xC0, 0x7A)
 
 CLARO = {
     "escuro": False,
@@ -140,16 +144,30 @@ def bloco_codigo(slide, x, y, cx, cy, linhas, *, tamanho=13, barra=None):
     return tb
 
 
-def legenda(slide, x, y, cx, texto, *, cor=T["fraco"], tamanho=13):
+def legenda(slide, x, y, cx, texto, *, cor=None, tamanho=13):
+    # `cor=T["fraco"]` no default congelaria o tema claro: o valor e avaliado
+    # quando a funcao e definida, e nao quando ela e chamada
+    cor = T["fraco"] if cor is None else cor
     tb = texto_livre(slide, x, y, cx, Inches(0.3))
     escrever(tb.text_frame, [texto], tamanho=tamanho, cor=cor, espaco_depois=0)
     return tb
 
 
+def escrever(frame, linhas, **kw):
+    """O `escrever` do insper, com a cor do tema no lugar do preto fixo.
+
+    O original tem `cor=PRETO` por padrao, o que no deck escuro e texto
+    invisivel sobre fundo escuro. Quem passa `cor=` explicitamente continua
+    mandando, e os dicts de cada paragrafo tambem.
+    """
+    kw.setdefault("cor", T["texto"])
+    return escrever_insper(frame, linhas, **kw)
+
+
 def painel(slide, x, y, cx, cy, linhas, *, inverso=False, recuo=0.30):
     """Caixa de destaque, clara ou invertida, com paragrafos ja formatados."""
-    fundo = PRETO if inverso else QUASE_BRANCO
-    base = BRANCO if inverso else PRETO
+    fundo = T["inverso"] if inverso else T["superficie"]
+    base = T["inverso_texto"] if inverso else T["texto"]
     caixa(slide, x, y, cx, cy, preenchimento=fundo)
     tb = texto_livre(slide, x + Inches(recuo), y + Inches(0.16),
                      cx - Inches(recuo * 2), cy - Inches(0.24))
@@ -204,7 +222,7 @@ def s02_plano(prs, lays):
          "pandas que o projeto usa.", T["acento2"]),
         ("60 min", "Projeto 02", "no app da disciplina. Você organiza blocos de "
          "pandas e de plotnine na ordem em que devem rodar.", T["acento1"]),
-        ("5 min", "Fechamento", "entrega e o que vem na aula 7.", CINZA_ESCURO),
+        ("5 min", "Fechamento", "entrega e o que vem na aula 7.", T["neutro"]),
     ]
     y = Inches(2.62)
     for tempo, titulo, texto, cor in itens:
@@ -250,7 +268,7 @@ def s02b_retomada_pipeline(prs, lays):
         y += Inches(0.52)
 
     etiqueta(slide, MARGEM + Inches(6.85), Inches(2.42), Inches(3.20),
-             Inches(0.40), "e sempre entre parênteses", CINZA_ESCURO)
+             Inches(0.40), "e sempre entre parênteses", T["neutro"])
     bloco_codigo(slide, MARGEM + Inches(6.85), Inches(2.94), Inches(4.65),
                  Inches(2.10), [
         "(",
@@ -336,9 +354,9 @@ def s09b_catalogo_uni(prs, lays):
          ['ggplot(penas, aes(x="regime"))', "+ geom_bar()"],
          "geom_bar() conta as linhas sozinho: não existe coluna y."),
         ("categórica · frequência relativa", T["acento1"], "cat_prop",
-         ['ggplot(freq, aes(x="regime", y="prop"))', "+ geom_col()"],
-         "A divisão é feita antes, no pandas. A altura já vem pronta na "
-         "tabela, então o geom é geom_col()."),
+         ['ggplot(freq, aes(x="regime", y="proportion"))', "+ geom_col()"],
+         "O value_counts(normalize=True) divide antes, e a altura já vem "
+         "pronta na tabela: o geom é geom_col()."),
         ("numérica · distribuição", T["acento2"], "num_hist",
          ['ggplot(penas, aes(x="pena_anos"))', "+ geom_histogram(bins=20)"],
          "Numérica não tem categoria para contar: o histograma corta em faixas "
@@ -407,8 +425,8 @@ def s09b_univariados(prs, lays):
     slide = novo_slide(prs, lays, "Uma variável: qual gráfico", EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.98), FAIXA,
-            "Os mesmos casos, agora em tabela, para consultar depois. "
-            "Entram também duas geometrias que só aparecem no notebook.")
+            "Os mesmos casos, agora em tabela, para consultar depois. Entra "
+            "também o boxplot, que volta adiante comparando categorias.")
 
     linhas = [
         ("categórica", "quantos casos em cada categoria", "geom_bar()",
@@ -597,7 +615,7 @@ def s04_proporcao(prs, lays):
     # ggplot da direita que estava escrito em prosa, embaixo, onde ninguem le.
     # esquerda: contar
     etiqueta(slide, MARGEM, Inches(2.42), Inches(5.30), Inches(0.40),
-             "quantos? a geometria conta: geom_bar()", CINZA_ESCURO)
+             "quantos? a geometria conta: geom_bar()", T["neutro"])
     bloco_codigo(slide, MARGEM, Inches(2.94), Inches(5.30), Inches(1.95), [
         "(",
         '    ggplot(penas, aes(x="regime"))',
@@ -687,7 +705,7 @@ def s04_forma_curta(prs, lays):
     x2 = MARGEM + largura + Inches(0.40)
 
     etiqueta(slide, MARGEM, Inches(2.55), Inches(3.10), Inches(0.36),
-             "a forma da aula 5", CINZA_ESCURO)
+             "a forma da aula 5", T["neutro"])
     bloco_codigo(slide, MARGEM, Inches(3.03), largura, Inches(1.45), [
         "(",
         "    ggplot(penas)",
@@ -1031,9 +1049,9 @@ def s10_tabela(prs, lays):
     for r, (par, perg, geom, cor) in enumerate(linhas, start=1):
         zebra = T["superficie"] if r % 2 == 0 else None
         celula(tabela, r, 0, "", fundo=cor)
-        celula(tabela, r, 1, par, tamanho=12, bold=True, fundo=zebra)
+        celula(tabela, r, 1, par, tamanho=12, bold=True, cor=T["texto"], fundo=zebra)
         celula(tabela, r, 2, perg, tamanho=12, cor=T["fraco"], fundo=zebra)
-        celula(tabela, r, 3, geom, tamanho=12, bold=True, fundo=zebra)
+        celula(tabela, r, 3, geom, tamanho=12, bold=True, cor=T["texto"], fundo=zebra)
 
     caixa(slide, MARGEM, Inches(6.30), FAIXA, Inches(0.72),
           preenchimento=T["superficie"])
@@ -1089,7 +1107,7 @@ def s12_fechamento(prs, lays):
         ("Rode o notebook inteiro em casa", "Principalmente os exercícios 1 a "
          "3, que são os que pedem a leitura escrita do gráfico.", T["acento2"]),
         ("Aula 7", "Probabilidade. Volta o papel e a caneta, e some o "
-         "computador.", CINZA_ESCURO),
+         "computador.", T["neutro"]),
     ]
     y = Inches(2.40)
     for titulo, texto, cor in itens:
