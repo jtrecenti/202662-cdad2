@@ -18,7 +18,8 @@ import matplotlib
 matplotlib.use("Agg")
 
 import pandas as pd
-from plotnine import (aes, coord_flip, geom_bar, geom_boxplot, geom_col,
+from plotnine import (aes, coord_flip, element_rect, geom_bar, geom_boxplot,
+                      geom_col,
                       geom_line,
                       geom_histogram, scale_x_datetime,
                       geom_point, geom_smooth, ggplot, labs, theme,
@@ -162,6 +163,14 @@ def figuras(penas: pd.DataFrame) -> dict:
     }
 
 
+# o unico ajuste da versao escura: fundo branco de verdade, e nao transparente
+FUNDO_BRANCO = theme(
+    plot_background=element_rect(fill="#FFFFFF", color="#FFFFFF"),
+    panel_background=element_rect(fill="#FFFFFF", color="none"),
+    legend_background=element_rect(fill="#FFFFFF", color="none"),
+    legend_key=element_rect(fill="#FFFFFF", color="none"),
+)
+
 TAMANHO = {
     "cat_freq": (3.4, 2.6),
     "cat_prop": (3.4, 2.6),
@@ -194,9 +203,15 @@ def main() -> None:
         estilo = {"figure_size": TAMANHO[nome]}
         if nome in LEGENDA_EMBAIXO:
             estilo["legend_position"] = "bottom"
-        (g + theme_minimal() + theme(**estilo)).save(
-            os.path.join(SAIDA, f"{nome}.png"), dpi=200, verbose=False)
-        print(f"  assets/aula06/{nome}.png")
+        base = g + theme_minimal() + theme(**estilo)
+        base.save(os.path.join(SAIDA, f"{nome}.png"), dpi=200, verbose=False)
+        # A versao do deck escuro NAO acompanha o fundo do slide: ela vira um
+        # cartao branco. Escuro sobre escuro apaga o grafico justamente no
+        # projetor, e o `theme_minimal` deixa o fundo transparente, que sobre
+        # slide preto da no mesmo. Por isso o branco vai explicito.
+        (base + FUNDO_BRANCO).save(
+            os.path.join(SAIDA, f"{nome}_dark.png"), dpi=200, verbose=False)
+        print(f"  assets/aula06/{nome}.png  (+ _dark)")
 
 
 if __name__ == "__main__":

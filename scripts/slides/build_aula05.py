@@ -708,8 +708,6 @@ def s13_geometria(prs, lays):
         ("uma numérica", "como os valores se distribuem",
          "geom_histogram(bins=)", "o número de caixas muda a leitura",
          T["acento3"]),
-        ("uma numérica", "a mesma distribuição, alisada", "geom_density()",
-         "sem o degrau das caixas", T["acento3"]),
         ("uma numérica", "mediana, quartis e pontos fora", "geom_boxplot()",
          "resume, e por isso esconde a forma", T["acento3"]),
     ]

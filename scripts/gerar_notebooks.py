@@ -2367,7 +2367,7 @@ A última seção é a **Gincana do Pipeline**, com o enunciado de cada rodada e
 célula em branco para você escrever a resposta. Os gabaritos não estão aqui:
 eles aparecem no telão depois que a rodada fecha.
 
-> O que vai além do slide (histograma, densidade, boxplot, facetas, rótulos e
+> O que vai além do slide (histograma, boxplot, facetas, rótulos e
 > exercícios) está no notebook **aula05_extra_graficos**, para estudar por conta.
 """,
     )
@@ -2831,7 +2831,6 @@ Hoje só variáveis sozinhas. Quinta-feira, duas de cada vez.
 | uma categórica | quantos casos em cada categoria | `geom_bar()` | conta sozinho: a altura sai da contagem |
 | uma categórica, altura já calculada | mostrar um valor por categoria | `geom_col()` | usa a coluna que você mapeou em `y` |
 | uma numérica | como os valores se distribuem | `geom_histogram(bins=)` | o número de caixas muda a leitura |
-| uma numérica | a mesma distribuição, alisada | `geom_density()` | sem o degrau das caixas |
 | uma numérica | mediana, quartis e pontos fora | `geom_boxplot()` | resume, e por isso esconde a forma |
 
 **`geom_bar()` conta. `geom_col()` usa a altura que você deu.** Confundir os dois
@@ -2917,7 +2916,7 @@ def montar_aula05_completo() -> Caderno:
     """A aula 5 inteira em texto, para estudar por conta.
 
     Convive com `montar_aula05`, que e o espelho dos slides. Esta versao vai
-    alem do que foi projetado: histograma, densidade, boxplot, rotulos, facetas
+    alem do que foi projetado: histograma, boxplot, rotulos, facetas
     e os exercicios.
     """
     nb = Caderno("aula05_completo")
@@ -2935,7 +2934,7 @@ def montar_aula05_completo() -> Caderno:
         abertura="""
 Esta é a **versão completa** da aula 5: a gramática de gráficos do começo ao
 fim, com o que foi projetado e também o que não coube no telão (histograma,
-densidade, boxplot, rótulos, facetas e três exercícios).
+boxplot, rótulos, facetas e três exercícios).
 
 > Um gráfico estatístico é um **mapeamento de variáveis (colunas) em aspectos
 > estéticos de formas geométricas**.
@@ -2970,7 +2969,7 @@ somadas com `.`. Aqui, um gráfico é uma sequência de camadas somadas com `+`.
         ]),
         ("Uma variável numérica: histograma", "numerica", [
             ("O número de caixas muda a leitura", "bins"),
-            ("Densidade e boxplot", "outras-geoms"),
+            ("O boxplot", "outras-geoms"),
         ]),
         ("Rótulos: labs()", "labs"),
         ("Facetas: facet_wrap()", "facetas"),
@@ -3517,18 +3516,9 @@ três valores antes de escolher.
         '(\n    ggplot(penas)\n    + aes(x="pena_anos")\n    + geom_histogram(bins=________)\n)',
     )
 
-    nb.sub("outras-geoms", "Densidade e boxplot", """
-Trocar a geometria é trocar uma linha. `geom_density()` desenha uma curva lisa no
-lugar das colunas, e é útil quando o interesse é o formato da distribuição, e não
-a contagem:
-""")
-
-    nb.code("""
-(
-    ggplot(penas)
-    + aes(x="pena_anos")
-    + geom_density()
-)
+    nb.sub("outras-geoms", "O boxplot", """
+Trocar a geometria é trocar uma linha, e a mesma variável numérica aceita mais
+de uma forma. Depois do histograma, a outra que vale conhecer é o boxplot:
 """)
 
     nb.md("""
@@ -3662,7 +3652,7 @@ vez:
 | categórica ordinal | `regime` | `geom_bar()` | o mesmo, na ordem que importa |
 | binária | `houve_reincidencia` | `geom_bar()` | quantos sim e quantos não |
 | numérica discreta | `n_palavras_ementa` | `geom_histogram()` | onde os valores se concentram |
-| numérica contínua | `pena_anos` | `geom_histogram()`, `geom_density()`, `geom_boxplot()` | formato, centro e dispersão |
+| numérica contínua | `pena_anos` | `geom_histogram()`, `geom_boxplot()` | formato, centro e dispersão |
 
 Duas armadilhas frequentes:
 
@@ -3761,7 +3751,6 @@ Três são obrigatórias, o resto é ajuste.
 | `+ aes(x=..., fill=...)` | que coluna vai em que propriedade visual |
 | `+ geom_bar()` | contar categorias e desenhar barras |
 | `+ geom_histogram(bins=n)` | cortar uma variável numérica em caixas e contar |
-| `+ geom_density()` | o formato da distribuição, em curva |
 | `+ geom_boxplot()` | mediana, quartis e valores distantes |
 | `+ geom_col()` | barras com a altura que você informou em `y` |
 | `+ coord_flip()` | deitar as barras |
