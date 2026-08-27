@@ -554,8 +554,10 @@ def s11_projeto(prs, lays):
             "terça-feira, no computador.")
 
     passos = [
-        ("Três desafios", "cada um com uma pergunta e a imagem do gráfico "
-         "que você precisa produzir. Dá para avançar e voltar."),
+        ("Seis desafios", "cada um com uma pergunta e a imagem do gráfico "
+         "que vocês precisam produzir. Dá para avançar e voltar."),
+        ("Valem 11 pontos", "o primeiro vale 1 e os outros 2. Cada tentativa "
+         "errada desconta 0,25, e a nota para em 10."),
         ("Blocos fora de ordem", "de pandas e de plotnine. Você escolhe quais "
          "usar e em que ordem."),
         ("Tem bloco que não serve", "e o app explica por que, quando você usa. "
