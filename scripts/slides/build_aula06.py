@@ -231,13 +231,92 @@ def s02c_retomada_grafico(prs, lays):
     return slide
 
 
+def s09b_catalogo_uni(prs, lays):
+    """Um exemplo desenhado para cada grafico de uma variavel."""
+    slide = slide_com_titulo(prs, lays, "Uma variável: os três casos", EYEBROW)
+
+    legenda(slide, MARGEM, Inches(1.90), FAIXA,
+            "O tipo da variável escolhe a geometria. Estes são todos os casos "
+            "de uma variável sozinha.")
+
+    casos = [
+        ("categórica · frequência", TURQUESA, "cat_freq",
+         ['ggplot(penas, aes(x="regime"))', "+ geom_bar()"],
+         "geom_bar() conta as linhas sozinho: não existe coluna y."),
+        ("categórica · frequência relativa", TURQUESA, "cat_prop",
+         ['ggplot(freq, aes(x="regime", y="prop"))', "+ geom_col()"],
+         "A divisão é feita antes, no pandas. A altura já vem pronta na "
+         "tabela, então o geom é geom_col()."),
+        ("numérica · distribuição", ROXO, "num_hist",
+         ['ggplot(penas, aes(x="pena_anos"))', "+ geom_histogram(bins=20)"],
+         "Numérica não tem categoria para contar: o histograma corta em faixas "
+         "e conta cada faixa."),
+    ]
+
+    largura = Inches(3.70)
+    passo = largura + Inches(0.20)
+    for i, (rotulo, cor, figura, codigo, nota) in enumerate(casos):
+        x = MARGEM + i * passo
+        etiqueta(slide, x, Inches(2.42), largura, Inches(0.38), rotulo, cor)
+        bloco_codigo(slide, x, Inches(2.92), largura, Inches(0.78), codigo,
+                     tamanho=10, barra=cor)
+        imagem_ajustada(slide, os.path.join(FIGURAS, f"{figura}.png"),
+                        x, Inches(3.82), largura, Inches(2.20), moldura=False)
+        tb = texto_livre(slide, x, Inches(6.10), largura, Inches(0.90))
+        escrever(tb.text_frame, [{"texto": nota, "tamanho": 11,
+                                  "cor": CINZA_ESCURO, "depois": 0}])
+    return slide
+
+
+def s09c_catalogo_bi(prs, lays):
+    """Um exemplo desenhado para cada grafico de duas variaveis."""
+    slide = slide_com_titulo(prs, lays, "Duas variáveis: os quatro casos",
+                             EYEBROW)
+
+    legenda(slide, MARGEM, Inches(1.90), FAIXA,
+            "Agora o par de tipos escolhe a geometria. E quando o eixo x é "
+            "tempo, o par muda de nome: vira série.")
+
+    casos = [
+        ("categórica × categórica", ROXO, "fill",
+         ['aes(x="regime", fill="houve_reincidencia")',
+          '+ geom_bar(position="fill")'],
+         "Barras repartidas. Em proporção com fill, em contagem com dodge."),
+        ("categórica × numérica", LARANJA, "boxplot",
+         ['aes(x="regime", y="pena_anos")', "+ geom_boxplot() + coord_flip()"],
+         "Uma caixa por categoria, comparando a distribuição inteira."),
+        ("numérica × numérica", TURQUESA, "pontos_smooth",
+         ['aes(x="n_palavras_ementa", y="pena_anos")',
+          "+ geom_point() + geom_smooth(method=\"lm\")"],
+         "Um ponto por linha, e a reta resume a direção da nuvem."),
+        ("numérica × tempo", VERMELHO, "serie",
+         ['aes(x="mes", y="n")', "+ geom_line() + geom_point()"],
+         "Com o tempo no eixo x, a linha liga os pontos e mostra a trajetória."),
+    ]
+
+    largura = Inches(2.75)
+    passo = largura + Inches(0.18)
+    for i, (rotulo, cor, figura, codigo, nota) in enumerate(casos):
+        x = MARGEM + i * passo
+        etiqueta(slide, x, Inches(2.42), largura, Inches(0.38), rotulo, cor,
+                 tamanho=10.5)
+        bloco_codigo(slide, x, Inches(2.92), largura, Inches(0.86), codigo,
+                     tamanho=8.5, barra=cor)
+        imagem_ajustada(slide, os.path.join(FIGURAS, f"{figura}.png"),
+                        x, Inches(3.90), largura, Inches(2.10), moldura=False)
+        tb = texto_livre(slide, x, Inches(6.08), largura, Inches(0.95))
+        escrever(tb.text_frame, [{"texto": nota, "tamanho": 10.5,
+                                  "cor": CINZA_ESCURO, "depois": 0}])
+    return slide
+
+
 def s09b_univariados(prs, lays):
     """Retomada: uma variavel sozinha, por tipo."""
     slide = slide_com_titulo(prs, lays, "Uma variável: qual gráfico", EYEBROW)
 
     legenda(slide, MARGEM, Inches(1.98), FAIXA,
-            "Antes de juntar duas, o que já vimos para uma sozinha. O tipo da "
-            "variável escolhe a geometria.")
+            "Os mesmos casos, agora em tabela, para consultar depois. "
+            "Entram também duas geometrias que só aparecem no notebook.")
 
     linhas = [
         ("categórica", "quantos casos em cada categoria", "geom_bar()",
@@ -860,7 +939,8 @@ def main():
                       s07_boxplot,
                       s08a_position_codigo, s08b_position_resultado,
                       s09_preparar,
-                      s09b_univariados, s09c_datatoviz, s10_tabela,
+                      s09b_catalogo_uni, s09c_catalogo_bi,
+                      s09b_univariados, s10_tabela, s09c_datatoviz,
                       s11_projeto):
         construir(prs, lays)
 

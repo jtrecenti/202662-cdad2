@@ -19,7 +19,8 @@ matplotlib.use("Agg")
 
 import pandas as pd
 from plotnine import (aes, coord_flip, geom_bar, geom_boxplot, geom_col,
-                      geom_histogram,
+                      geom_line,
+                      geom_histogram, scale_x_datetime,
                       geom_point, geom_smooth, ggplot, labs, theme,
                       theme_minimal)
 
@@ -61,7 +62,44 @@ def figuras(penas: pd.DataFrame) -> dict:
         .agg(prop_reincidencia=("houve_reincidencia", "mean"))
     )
 
+    # ---- o catalogo de exemplos, um por tipo de grafico -------------------
+    # frequencia relativa de uma categorica: o pandas faz a divisao e o
+    # plotnine so desenha. Sem lambda, que a turma nao viu.
+    freq = penas.groupby("regime", as_index=False, observed=True).agg(
+        n=("processo", "size"))
+    freq["prop"] = freq["n"] / freq["n"].sum()
+
+    # serie temporal: a base criminal tem quatro dias de julgamento, e nao da
+    # serie nenhuma. Esta e a base de saude da aula 2, por mes de ajuizamento.
+    saude = pd.read_csv(os.path.join(AQUI, "..", "dados",
+                                     "tjsp_datajud_saude.csv"))
+    saude["mes"] = (pd.to_datetime(saude["data_ajuizamento"], errors="coerce")
+                    .dt.to_period("M").dt.to_timestamp())
+    por_mes = saude.groupby("mes", as_index=False).agg(
+        n=("numero_processo", "size"))
+
     return {
+        # o catalogo
+        "cat_freq": (
+            ggplot(penas, aes(x="regime"))
+            + geom_bar()
+            + labs(x="Regime inicial", y="Acórdãos")),
+        "cat_prop": (
+            ggplot(freq, aes(x="regime", y="prop"))
+            + geom_col()
+            + labs(x="Regime inicial", y="Proporção")),
+        "num_hist": (
+            ggplot(penas, aes(x="pena_anos"))
+            + geom_histogram(bins=20)
+            + labs(x="Pena (anos)", y="Acórdãos")),
+        "serie": (
+            ggplot(por_mes, aes(x="mes", y="n"))
+            + geom_line()
+            + geom_point(size=1.2)
+            # sem isto o eixo x escreve a data inteira em cada ponto e os
+            # rotulos se empilham uns sobre os outros
+            + scale_x_datetime(date_breaks="1 year", date_labels="%Y")
+            + labs(x="Mês de ajuizamento", y="Processos")),
         # a retomada da gincana
         "retomada_col": (
             ggplot(resumo_regime,
@@ -125,6 +163,10 @@ def figuras(penas: pd.DataFrame) -> dict:
 
 
 TAMANHO = {
+    "cat_freq": (3.4, 2.6),
+    "cat_prop": (3.4, 2.6),
+    "num_hist": (3.4, 2.6),
+    "serie": (3.4, 2.6),
     "retomada_col": (4.5, 2.9),
     "retomada_bar": (4.5, 2.9),
     "histograma": (4.8, 2.9),
