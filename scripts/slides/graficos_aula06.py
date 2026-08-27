@@ -98,7 +98,8 @@ def figuras(penas: pd.DataFrame) -> dict:
         # numerica x categorica
         "boxplot": (
             ggplot(penas, aes(x="regime", y="pena_anos"))
-            + geom_boxplot(fill="#DCDCDC")
+            + geom_boxplot()
+            + coord_flip()
             + labs(x="Regime inicial", y="Pena (anos)")),
         # duas categoricas: os tres position
         "stack": (
@@ -130,7 +131,7 @@ TAMANHO = {
     "pontos": (4.6, 3.0),
     "pontos_smooth": (4.6, 3.0),
     "pontos_cor": (5.6, 3.0),
-    "boxplot": (4.6, 3.0),
+    "boxplot": (5.0, 3.4),
     "stack": (3.5, 3.0),
     "fill": (3.5, 3.0),
     "dodge": (3.5, 3.0),
