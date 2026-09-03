@@ -3,7 +3,7 @@
 Sai daqui:
     notebooks/aula07_professor.ipynb   probabilidade condicional e independência
     notebooks/aula07_aluno.ipynb
-    notebooks/aula08_professor.ipynb   distribuições de probabilidade
+    notebooks/aula08_professor.ipynb   condicional, independência e Bayes
     notebooks/aula08_aluno.ipynb
     notebooks/aula09_professor.ipynb   amostra, TCL e intervalo de confiança
     notebooks/aula09_aluno.ipynb
@@ -71,15 +71,19 @@ def montar_aula07() -> Caderno:
         "Aula 07",
         [
             "calcular a probabilidade de um evento como proporção na base;",
+            "montar a tabela de dupla entrada e separar conjunta de marginal;",
             "calcular uma probabilidade condicional filtrando e recontando;",
-            "montar a tabela de duas variáveis e ler as contagens dela;",
-            "verificar se dois eventos são independentes comparando o observado "
-            "com o que a independência preveria.",
+            "verificar independência comparando o observado com o esperado;",
+            "aplicar o teorema de Bayes para inverter uma condicional.",
         ],
         abertura="""
 Este notebook é curto de propósito. Tudo que está aqui já foi feito na lousa
-hoje: o que muda é que agora o computador faz a divisão, e você confere se o
-número bate com o que você calculou à mão.
+hoje.
+
+Uma diferença em relação ao slide: lá a tabela de 400 sentenças era
+**ilustrativa**, com números escolhidos para fechar de cabeça. Aqui a base é
+**real**, e por isso as divisões não dão números redondos. É assim que a conta
+aparece na vida.
 """,
     )
 
@@ -89,61 +93,66 @@ número bate com o que você calculou à mão.
         ("A tabela de dupla entrada", "tabela"),
         ("Probabilidade condicional", "condicional"),
         ("Independência: o teste", "independencia"),
+        ("Teorema de Bayes", "bayes"),
         ("RESUMO", "resumo"),
     ])
 
     # ---------------------------------------------------------------- base
     nb.secao("dados", "A base de hoje", """
-A mesma base de apelações criminais das aulas 4 a 6. Uma linha por acórdão.
+Acórdãos do TJSP em ações contra planos de saúde. Uma linha por acórdão.
 """)
-    nb.code(ABERTURA_CRIMINAL)
+    nb.code(f'''
+import pandas as pd
+
+pd.set_option("display.max_columns", 30)
+pd.set_option("display.width", 160)
+
+URL = "{URL}"
+
+saude = pd.read_csv(f"{{URL}}/tjsp_cjsg_plano_saude.csv")
+
+saude.shape
+''')
 
     nb.md("""
-Duas colunas interessam hoje:
+Duas colunas de sim ou não interessam hoje:
 
-- `regime_inicial`: aberto, semiaberto ou fechado;
-- `houve_reincidencia`: `True` ou `False`.
+- `tem_dano_moral`: o acórdão reconheceu dano moral;
+- `houve_majoracao`: o valor da indenização foi majorado.
 """)
-    nb.code('penas[["regime_inicial", "houve_reincidencia"]].head()')
+    nb.code('saude[["tem_dano_moral", "houve_majoracao"]].head()')
 
     nb.volta()
 
     # ----------------------------------------------------------- proporcao
     nb.secao("proporcao", "Probabilidade é uma proporção", """
 $P(A)$ é o número de casos em $A$ dividido pelo total. No pandas, uma coluna de
-`True` e `False` já sabe fazer essa conta sozinha: a média de uma coluna
-booleana **é** a proporção de `True`.
+`True` e `False` já sabe fazer essa conta: a média de uma coluna booleana **é**
+a proporção de `True`.
 """)
 
     nb.code('''
-# O evento "o regime foi fechado", caso a caso
-fechado = penas["regime_inicial"] == "fechado"
+dano = saude["tem_dano_moral"]
 
-fechado.head()
-''')
-
-    nb.code('''
-# P(fechado): quantos True, dividido pelo total
-fechado.mean()
+dano.mean()
 ''')
 
     nb.md("""
 Por que a média funciona: `True` vale 1 e `False` vale 0, então somar a coluna
-conta os casos e dividir pelo tamanho dá a proporção. É a definição de
-probabilidade que usamos na lousa, escrita em uma linha.
+conta os casos e dividir pelo tamanho dá a proporção.
 """)
 
     nb.faca(
-        "Calcule $P(\\text{réu reincidente})$. É a mesma ideia, em outra coluna.",
+        "Calcule $P(\\text{houve majoração})$. Mesma ideia, outra coluna.",
         '''
-reincidente = penas["houve_reincidencia"]
+majorou = saude["houve_majoracao"]
 
-reincidente.mean()
+majorou.mean()
 ''',
         '''
-reincidente = penas["________"]
+majorou = saude["________"]
 
-reincidente.________()
+majorou.________()
 ''',
     )
 
@@ -151,15 +160,14 @@ reincidente.________()
 
     # -------------------------------------------------------------- tabela
     nb.secao("tabela", "A tabela de dupla entrada", """
-`pd.crosstab` cruza duas colunas e conta quantos casos caem em cada
-combinação. É exatamente a tabela que estava no slide.
+`pd.crosstab` cruza duas colunas e conta quantos casos caem em cada combinação.
 
-Vale reter os dois nomes, porque eles aparecem juntos o tempo todo:
+Os dois nomes da aula aparecem aqui:
 
-- o **miolo** da tabela é a distribuição **conjunta**, e cada célula responde
-  por duas variáveis ao mesmo tempo;
-- a última linha e a última coluna são as distribuições **marginais**, e cada
-  valor delas responde por uma variável só.
+- o **miolo** é a distribuição **conjunta**, e cada célula responde por duas
+  variáveis ao mesmo tempo;
+- a última linha e a última coluna são as **marginais**, e cada valor delas
+  responde por uma variável só.
 """)
 
     nb.operacao(
@@ -170,141 +178,200 @@ Vale reter os dois nomes, porque eles aparecem juntos o tempo todo:
 
     nb.code('''
 pd.crosstab(
-    penas["regime_inicial"],
-    penas["houve_reincidencia"],
+    saude["tem_dano_moral"],
+    saude["houve_majoracao"],
     margins=True,
     margins_name="total",
 )
 ''')
 
     nb.md("""
-Todos os números da aula estão aí: 83 é a conjunta de fechado com reincidente,
-135 é a marginal dos reincidentes e 333 é o total.
+✔️ **A mesma tabela em proporções.** `normalize="all"` divide tudo pelo total
+geral, e é a versão do slide em que o canto vale 1.
 """)
+
+    nb.code('''
+pd.crosstab(
+    saude["tem_dano_moral"],
+    saude["houve_majoracao"],
+    margins=True,
+    margins_name="total",
+    normalize="all",
+).round(3)
+''')
 
     nb.volta()
 
     # ---------------------------------------------------------- condicional
     nb.secao("condicional", "Probabilidade condicional", """
-Condicionar é trocar o denominador: em vez de dividir pelos 333, dividimos só
+Condicionar é trocar o denominador: em vez de dividir pelo total, dividimos só
 pelo grupo que interessa. No pandas isso é **filtrar e recontar**.
 """)
 
     nb.code('''
-# Só os reincidentes. Depois do filtro, o total já é outro.
-so_reincidentes = penas.query("houve_reincidencia == True")
+# Só os acórdãos que reconheceram dano moral
+com_dano = saude.query("tem_dano_moral")
 
-len(so_reincidentes)
+len(com_dano)
 ''')
 
     nb.code('''
-# P(fechado | reincidente): a mesma média de antes, dentro do filtro
-(so_reincidentes["regime_inicial"] == "fechado").mean()
+# P(majoração | tem dano moral)
+com_dano["houve_majoracao"].mean()
 ''')
 
     nb.md("""
-Compare com $P(\\text{fechado}) = 0{,}456$ na base inteira. Saber que o réu é
-reincidente mudou o número, e é isso que significa dizer que as duas variáveis
-têm relação.
+Compare com a proporção de majoração na base inteira. Saber que houve dano
+moral **muda** o número, e é isso que significa dizer que as duas variáveis têm
+relação.
 """)
 
     nb.faca(
-        "Agora o outro lado: $P(\\text{fechado} \\mid \\text{NÃO reincidente})$. "
-        "Troque o filtro e refaça a média.",
+        "Agora o outro lado: $P(\\text{majoração} \\mid \\text{sem dano moral})$.",
         '''
-so_primarios = penas.query("houve_reincidencia == False")
+sem_dano = saude.query("~tem_dano_moral")
 
-(so_primarios["regime_inicial"] == "fechado").mean()
+sem_dano["houve_majoracao"].mean()
 ''',
         '''
-so_primarios = penas.query("houve_reincidencia == ________")
+sem_dano = saude.query("~________")
 
-(so_primarios["regime_inicial"] == "________").mean()
+sem_dano["________"].mean()
 ''',
     )
 
     nb.md("""
-✔️ **Um atalho.** `normalize="columns"` faz o crosstab dividir cada coluna pelo
-próprio total, que é a mesma conta condicional de uma vez só.
+⚠️ **Cuidado com o `normalize`.** `"index"` divide por linha, `"columns"` por
+coluna e `"all"` pelo total. As três dão números diferentes e respondem a
+perguntas diferentes. Errar aqui é o mesmo erro de dividir pelo total em vez de
+pelo grupo.
 """)
 
     nb.code('''
 pd.crosstab(
-    penas["regime_inicial"],
-    penas["houve_reincidencia"],
-    normalize="columns",
+    saude["tem_dano_moral"],
+    saude["houve_majoracao"],
+    normalize="index",
 ).round(3)
 ''')
-
-    nb.md("""
-⚠️ **Cuidado com o `normalize`.** `"columns"` divide por coluna, `"index"`
-divide por linha e `"all"` divide pelo total geral. As três dão números
-diferentes e respondem a perguntas diferentes. Errar aqui é o mesmo erro de
-dividir por 333 em vez de 135.
-""")
 
     nb.volta()
 
     # ------------------------------------------------------- independencia
     nb.secao("independencia", "Independência: o teste", """
 Se dois eventos fossem independentes, a probabilidade dos dois juntos seria o
-produto das duas. O teste é comparar esse produto com o que a base tem de
-verdade.
+produto das marginais. O teste é comparar esse produto com o que a base tem.
 """)
 
     nb.code('''
-p_fechado = fechado.mean()
-p_reincidente = reincidente.mean()
+esperado = dano.mean() * majorou.mean() * len(saude)
+observado = (dano & majorou).sum()
 
-# O que a independência preveria, em número de acórdãos
-esperado = p_fechado * p_reincidente * len(penas)
-
-round(esperado, 1)
-''')
-
-    nb.code('''
-# O que a base tem de verdade
-observado = (fechado & reincidente).sum()
-
-observado
+print("esperado sob independência:", round(esperado, 1))
+print("observado                 :", observado)
 ''')
 
     nb.md("""
-Cerca de 62 contra 83. A diferença é o tamanho da relação entre reincidência e
-regime fechado: 21 acórdãos que a independência não explica.
+Cerca de 15 contra 21. A diferença é o tamanho da associação entre reconhecer
+dano moral e majorar o valor.
 
-Na aula 17 vamos aprender a decidir se uma diferença dessas é grande o
-bastante para não ser acaso. Por enquanto basta saber olhar para ela.
+Na aula 17 vamos aprender a decidir se uma diferença dessas é grande o bastante
+para não ser acaso. Aqui, com números pequenos, a cautela é ainda maior.
 """)
 
-    nb.exercicio(1, "ex1", """
-Refaça a comparação para o par **regime aberto** e **reincidência**.
+    nb.volta()
 
-1. calcule $P(\\text{aberto})$ e $P(\\text{aberto} \\mid \\text{reincidente})$;
-2. calcule quantos acórdãos a independência preveria e compare com o observado;
-3. em uma frase: a relação vai na mesma direção da de regime fechado, ou na
-   direção contrária?
+    # --------------------------------------------------------------- bayes
+    nb.secao("bayes", "Teorema de Bayes", """
+Bayes inverte a condicional:
+
+$$P(A \\mid B) = \\frac{P(B \\mid A)\\,P(A)}{P(B)}$$
+
+Vamos conferir que ele bate com a conta direta.
 """)
 
     nb.code('''
-aberto = penas["regime_inicial"] == "aberto"
+p_dano = dano.mean()
+p_maj = majorou.mean()
+p_maj_dado_dano = com_dano["houve_majoracao"].mean()
 
-print("P(aberto)              =", round(aberto.mean(), 3))
-print("P(aberto | reincidente) =",
-      round((so_reincidentes["regime_inicial"] == "aberto").mean(), 3))
-print("esperado sob independência =",
-      round(aberto.mean() * p_reincidente * len(penas), 1))
-print("observado                  =", (aberto & reincidente).sum())
-''', '''
-aberto = penas["regime_inicial"] == "________"
+# Bayes: P(dano | majorou)
+bayes = p_maj_dado_dano * p_dano / p_maj
 
-print("P(aberto)              =", round(aberto.________(), 3))
-print("P(aberto | reincidente) =",
-      round((so_reincidentes["regime_inicial"] == "________").mean(), 3))
-print("esperado sob independência =",
-      round(aberto.mean() * ________ * len(penas), 1))
-print("observado                  =", (aberto & ________).sum())
+# a conta direta, filtrando
+direto = saude.query("houve_majoracao")["tem_dano_moral"].mean()
+
+print("por Bayes :", round(bayes, 4))
+print("direto    :", round(direto, 4))
 ''')
+
+    nb.md("""
+Os dois dão o mesmo número, e é assim que tem que ser: Bayes não é uma conta
+nova, é a regra do produto escrita de outro jeito.
+
+Ele importa quando você **não tem a base inteira** para filtrar, e só conhece
+$P(B \\mid A)$ e as marginais. É a situação da perícia: o laudo informa a
+taxa de erro do exame, e ninguém tem a tabela do lote inteiro.
+""")
+
+    nb.exercicio(1, "ex1", """
+A perícia grafotécnica da aula, agora em código.
+
+Dois eventos, e só eles:
+
+- $F$: a assinatura do contrato **é falsa**;
+- $A$: a perícia **aponta** falsidade nesse contrato.
+
+O enunciado da lousa dá três números:
+
+- $P(F) = 0{,}01$, porque 1 em cada 100 contratos do lote tem assinatura falsa;
+- $P(A \\mid F) = 0{,}99$, porque **entre os contratos falsos** a perícia aponta
+  em 99% das vezes;
+- $P(A \\mid F^c) = 0{,}01$, porque **entre os autênticos** ela aponta em 1% das
+  vezes, por variação natural da assinatura.
+
+E pede $P(F \\mid A)$: a perícia apontou este contrato, qual a probabilidade de
+a assinatura ser mesmo falsa. É a inversão.
+
+1. escreva os três números como variáveis;
+2. calcule $P(A)$ pela lei da probabilidade total;
+3. calcule $P(F \\mid A)$ por Bayes, e confira com os 50% da lousa;
+4. refaça com $P(F) = 0{,}50$, como se a perícia só fosse pedida em contratos já
+   sob suspeita. O que acontece com a resposta?
+""")
+
+    nb.code('''
+def p_falso_dado_apontado(p_falso,
+                          p_aponta_dado_falso=0.99,
+                          p_aponta_dado_autentico=0.01):
+    # lei da probabilidade total: os apontados saem dos falsos e dos autênticos
+    p_aponta = (p_aponta_dado_falso * p_falso
+                + p_aponta_dado_autentico * (1 - p_falso))
+    # Bayes
+    return p_aponta_dado_falso * p_falso / p_aponta
+
+for antes in (0.01, 0.10, 0.50):
+    print(f"P(F) = {antes:.0%}  ->  P(F | A) = {p_falso_dado_apontado(antes):.1%}")
+''', '''
+def p_falso_dado_apontado(p_falso,
+                          p_aponta_dado_falso=0.99,
+                          p_aponta_dado_autentico=0.01):
+    # lei da probabilidade total: os apontados saem dos falsos e dos autênticos
+    p_aponta = (p_aponta_dado_falso * p_falso
+                + ________ * (1 - p_falso))
+    # Bayes
+    return p_aponta_dado_falso * p_falso / ________
+
+for antes in (0.01, 0.10, 0.50):
+    print(f"P(F) = {antes:.0%}  ->  P(F | A) = {p_falso_dado_apontado(antes):.1%}")
+''')
+
+    nb.md("""
+💡 A perícia é a mesma nas três linhas, e o laudo diria exatamente a mesma
+coisa. O que muda é **em que lote ela foi aplicada**. Por isso periciar o lote
+inteiro e periciar só os contratos já sob suspeita são decisões diferentes, com
+o mesmo perito e o mesmo equipamento.
+""")
 
     nb.volta()
 
@@ -312,14 +379,15 @@ print("observado                  =", (aberto & ________).sum())
 | ideia | no pandas |
 |---|---|
 | $P(A)$ | média de uma coluna booleana |
-| tabela de dupla entrada (conjunta e marginais) | `pd.crosstab(a, b, margins=True)` |
+| tabela de dupla entrada | `pd.crosstab(a, b, margins=True)` |
+| a mesma tabela em proporções | `normalize="all"` |
 | $P(A \\mid B)$ | `.query()` no B, e a média de A dentro do filtro |
-| todas as condicionais de uma vez | `pd.crosstab(a, b, normalize="columns")` |
-| independência | comparar $P(A) \\times P(B) \\times n$ com o observado |
+| todas as condicionais de uma vez | `normalize="index"` ou `"columns"` |
+| independência | comparar $P(A)P(B)n$ com o observado |
+| Bayes | $P(B \\mid A)P(A)/P(B)$, com $P(B)$ pela marginal |
 
-**A frase para levar:** condicionar é trocar o denominador. Todo erro de
-probabilidade que vimos hoje, inclusive os que prenderam gente inocente, é
-alguma versão de dividir pelo número errado.
+**A frase para levar:** condicionar é trocar o denominador, e Bayes é o que
+permite trocar de volta.
 """)
 
     nb.volta()
@@ -333,285 +401,333 @@ def montar_aula08() -> Caderno:
     nb = Caderno("aula08")
 
     nb.cabecalho(
-        "Distribuições de probabilidade",
+        "Condicional, independência e Bayes",
         "Aula 08",
         [
-            "reconhecer qual distribuição descreve um fenômeno jurídico a partir "
-            "do enunciado;",
-            "calcular probabilidades com a binomial e com a Poisson no scipy;",
-            "distinguir contagem (discreta) de tempo de espera (contínua);",
-            "ler um histograma da base como uma distribuição observada.",
+            "montar a tabela de dupla entrada e ler condicionais nela;",
+            "calcular uma condicional filtrando e recontando;",
+            "testar independência comparando o observado com o esperado;",
+            "inverter uma condicional com o teorema de Bayes.",
         ],
         abertura="""
-Curto, como o de terça. A escolha da distribuição foi feita na lousa; aqui você
-confere as contas e vê o formato de cada uma.
+Curto, como sempre. Tudo que está aqui já foi feito na lousa hoje.
+
+Uma diferença em relação ao slide: lá a tabela dos 300 processos era
+**ilustrativa**, com números escolhidos para fechar de cabeça. Aqui a base é
+**real**, e por isso as divisões não dão números redondos. É assim que a conta
+aparece na vida.
 """,
     )
 
     nb.indice([
-        ("O que muda de ontem para hoje", "ideia"),
-        ("Contar sucessos: a binomial", "binomial"),
-        ("Contar chegadas: a Poisson", "poisson"),
-        ("Esperar: a exponencial", "exponencial"),
-        ("A distribuição que a base mostra", "base"),
+        ("A base de hoje", "dados"),
+        ("A tabela de dupla entrada", "tabela"),
+        ("Probabilidade condicional", "condicional"),
+        ("Independência: o teste", "independencia"),
+        ("Teorema de Bayes", "bayes"),
+        ("Variável aleatória e esperança", "esperanca"),
         ("RESUMO", "resumo"),
     ])
 
-    # --------------------------------------------------------------- ideia
-    nb.secao("ideia", "O que muda de ontem para hoje", """
-Na terça calculamos a probabilidade de **um** evento por vez. Uma distribuição
-responde de uma vez só para **todos** os resultados possíveis: qual a chance de
-0, de 1, de 2, de 3, e assim por diante.
+    # --------------------------------------------------------------- dados
+    nb.secao("dados", "A base de hoje", """
+Acórdãos criminais do TJSP. Uma linha por acórdão.
+""")
 
-O `scipy.stats` tem uma função por distribuição, e todas se usam do mesmo jeito.
+    nb.code(ABERTURA_CRIMINAL)
+
+    nb.md("""
+Duas informações interessam hoje:
+
+- `houve_reincidencia`: o acórdão registrou reincidência;
+- `regime_inicial`: fechado, semiaberto ou aberto.
+
+O regime tem três valores, e a aula toda foi sobre eventos de sim ou não. Então
+a primeira coisa é transformar "regime" no evento **"o regime é fechado"**.
+""")
+
+    nb.code('''
+penas = penas.assign(fechado=penas["regime_inicial"] == "fechado")
+
+penas[["houve_reincidencia", "regime_inicial", "fechado"]].head()
+''')
+
+    nb.volta()
+
+    # -------------------------------------------------------------- tabela
+    nb.secao("tabela", "A tabela de dupla entrada", """
+`pd.crosstab` cruza duas colunas e conta quantos casos caem em cada combinação.
+É a mesma tabela do slide, agora com os números da base.
+
+- o **miolo** é a distribuição **conjunta**;
+- a última linha e a última coluna são as **marginais**.
+""")
+
+    nb.code('''
+pd.crosstab(
+    penas["houve_reincidencia"],
+    penas["fechado"],
+    margins=True,
+    margins_name="total",
+)
+''')
+
+    nb.md("""
+✔️ **A mesma tabela em proporções.** `normalize="all"` divide tudo pelo total
+geral, e é a versão em que o canto vale 1.
+""")
+
+    nb.code('''
+pd.crosstab(
+    penas["houve_reincidencia"],
+    penas["fechado"],
+    margins=True,
+    margins_name="total",
+    normalize="all",
+).round(3)
+''')
+
+    nb.md("""
+**✍️ Agora você.** Nessa tabela de proporções, aponte:
+
+1. a **conjunta** de "reincidente e regime fechado";
+2. a **marginal** de "regime fechado".
+""")
+
+    nb.volta()
+
+    # ---------------------------------------------------------- condicional
+    nb.secao("condicional", "Probabilidade condicional", """
+Condicionar é trocar o denominador: em vez de dividir pelo total, dividimos só
+pelo grupo que interessa. No pandas isso é **filtrar e recontar**.
+
+Comece pela probabilidade sem condicionar. A média de uma coluna booleana **é**
+a proporção de `True`, porque `True` vale 1 e `False` vale 0.
+""")
+
+    nb.code('''
+# P(fechado), sem condicionar
+penas["fechado"].mean()
+''')
+
+    nb.code('''
+# P(fechado | reincidente): filtra, e recalcula a média dentro do filtro
+reincidentes = penas.query("houve_reincidencia")
+
+reincidentes["fechado"].mean()
+''')
+
+    nb.md("""
+**✍️ Agora você.** O outro lado:
+$P(\\text{fechado} \\mid \\text{não reincidente})$.
+""")
+
+    nb.code('''
+nao_reincidentes = penas.query("~houve_reincidencia")
+
+nao_reincidentes["fechado"].mean()
+''', '''
+nao_reincidentes = penas.query("~houve_reincidencia")
+
+nao_reincidentes["________"].mean()
+''')
+
+    nb.md("""
+Três números: cerca de 0,46 sem condicionar, 0,61 entre reincidentes e 0,35
+entre não reincidentes. **Saber sobre a reincidência muda a probabilidade**, e é
+isso que significa dizer que as duas variáveis têm relação.
+
+⚠️ **Cuidado com o `normalize`.** `"index"` divide por linha, `"columns"` por
+coluna e `"all"` pelo total. As três dão números diferentes e respondem a
+perguntas diferentes. Errar aqui é o mesmo erro de dividir pelo total em vez de
+pelo grupo.
+""")
+
+    nb.code('''
+# todas as condicionais de uma vez: cada linha soma 1
+pd.crosstab(
+    penas["houve_reincidencia"],
+    penas["fechado"],
+    normalize="index",
+).round(3)
+''')
+
+    nb.volta()
+
+    # ------------------------------------------------------- independencia
+    nb.secao("independencia", "Independência: o teste", """
+Se dois eventos fossem independentes, a probabilidade dos dois juntos seria o
+produto das marginais. O teste é comparar esse produto com o que a base tem.
+""")
+
+    nb.code('''
+esperado = penas["fechado"].mean() * penas["houve_reincidencia"].mean() * len(penas)
+observado = (penas["fechado"] & penas["houve_reincidencia"]).sum()
+
+print("esperado sob independência:", round(esperado, 1))
+print("observado                 :", observado)
+''')
+
+    nb.md("""
+Cerca de 62 contra 83. O observado é bem maior que o esperado, então os eventos
+**não** são independentes.
+
+💡 E, como na aula: isso é **associação**, não causa. Reincidência e regime
+fechado andam juntos, e a lei explica boa parte disso. O número sozinho não diz
+qual é a explicação.
+""")
+
+    nb.volta()
+
+    # --------------------------------------------------------------- bayes
+    nb.secao("bayes", "Teorema de Bayes", """
+Bayes inverte a condicional:
+
+$$P(A \\mid B) = \\frac{P(B \\mid A)\\,P(A)}{P(B)}$$
+
+Com a base inteira na mão, dá para conferir que ele bate com a conta direta.
+""")
+
+    nb.code('''
+p_reincidencia = penas["houve_reincidencia"].mean()
+p_fechado = penas["fechado"].mean()
+p_fechado_dado_reincidencia = reincidentes["fechado"].mean()
+
+# Bayes: P(reincidente | fechado)
+bayes = p_fechado_dado_reincidencia * p_reincidencia / p_fechado
+
+# a conta direta, filtrando
+direto = penas.query("fechado")["houve_reincidencia"].mean()
+
+print("por Bayes :", round(bayes, 4))
+print("direto    :", round(direto, 4))
+''')
+
+    nb.md("""
+Os dois dão o mesmo número, e é assim que tem que ser: Bayes não é uma conta
+nova, é a regra do produto escrita de outro jeito.
+
+Repare que $P(\\text{fechado} \\mid \\text{reincidente}) \\approx 0,61$ e
+$P(\\text{reincidente} \\mid \\text{fechado}) \\approx 0,55$ são **números
+diferentes**. Trocar um pelo outro é o erro do promotor, e aqui a troca custaria
+seis pontos percentuais.
+
+Bayes importa quando você **não tem a base inteira** para filtrar, e só conhece
+$P(B \\mid A)$ e as marginais. É a situação da perícia: o laudo informa a taxa
+de erro do exame, e ninguém tem a tabela do lote inteiro.
+""")
+
+    nb.exercicio(1, "ex1", """
+A perícia grafotécnica da aula, agora em código.
+
+Dois eventos, e só eles:
+
+- $F$: a assinatura do contrato **é falsa**;
+- $A$: a perícia **aponta** falsidade nesse contrato.
+
+O enunciado da lousa dá três números: $P(F) = 0{,}01$,
+$P(A \\mid F) = 0{,}99$ e $P(A \\mid F^c) = 0{,}01$. E pede $P(F \\mid A)$.
+
+1. calcule $P(A)$ pela lei da probabilidade total;
+2. calcule $P(F \\mid A)$ por Bayes, e confira com os 50% da lousa;
+3. refaça com $P(F) = 0{,}50$, como se a perícia só fosse pedida em contratos já
+   sob suspeita. O que acontece com a resposta?
+""")
+
+    nb.code('''
+def p_falso_dado_apontado(p_falso,
+                          p_aponta_dado_falso=0.99,
+                          p_aponta_dado_autentico=0.01):
+    # lei da probabilidade total: os apontados saem dos falsos e dos autênticos
+    p_aponta = (p_aponta_dado_falso * p_falso
+                + p_aponta_dado_autentico * (1 - p_falso))
+    # Bayes
+    return p_aponta_dado_falso * p_falso / p_aponta
+
+for antes in (0.01, 0.10, 0.50):
+    print(f"P(F) = {antes:.0%}  ->  P(F | A) = {p_falso_dado_apontado(antes):.1%}")
+''', '''
+def p_falso_dado_apontado(p_falso,
+                          p_aponta_dado_falso=0.99,
+                          p_aponta_dado_autentico=0.01):
+    # lei da probabilidade total: os apontados saem dos falsos e dos autênticos
+    p_aponta = (p_aponta_dado_falso * p_falso
+                + ________ * (1 - p_falso))
+    # Bayes
+    return p_aponta_dado_falso * p_falso / ________
+
+for antes in (0.01, 0.10, 0.50):
+    print(f"P(F) = {antes:.0%}  ->  P(F | A) = {p_falso_dado_apontado(antes):.1%}")
+''')
+
+    nb.md("""
+💡 A perícia é a mesma nas três linhas, e o laudo diria exatamente a mesma
+coisa. O que muda é **em que lote ela foi aplicada**.
+""")
+
+    nb.volta()
+
+    # ----------------------------------------------------------- esperanca
+    nb.secao("esperanca", "Variável aleatória e esperança", """
+Uma **variável aleatória** é uma função que leva elementos do espaço amostral em
+valores numéricos, e para cada valor sabemos atribuir uma probabilidade. Essa
+lista de valores com as probabilidades deles é a **distribuição**.
+
+No caso dos honorários de êxito, visto no fim da aula: duas audiências por dia,
+20% de chance de acordo em cada uma, e R$ 500 por acordo fechado.
+
+| $x$ | $P(X = x)$ |
+|---|---|
+| 0 | 0,64 |
+| 500 | 0,32 |
+| 1000 | 0,04 |
+
+A **esperança** é a média dos valores possíveis, cada um pesado pela sua
+probabilidade.
 """)
 
     nb.code('''
 import numpy as np
-import pandas as pd
-from plotnine import *
-from scipy import stats
 
-pd.set_option("display.max_columns", 30)
+valores = np.array([0, 500, 1000])          # honorários do dia, em reais
+probabilidades = np.array([0.64, 0.32, 0.04])
+
+esperanca = (valores * probabilidades).sum()
+
+print("as probabilidades somam:", probabilidades.sum())
+print("honorário esperado por dia:", esperanca, "reais")
 ''')
 
     nb.md("""
-✔️ **O padrão do scipy**, igual para todas as distribuições:
+200 reais **não é um resultado possível**: num dia ela ganha 0, 500 ou 1000. A
+esperança é o que sai na média ao longo de muitos dias.
 
-| método | o que devolve |
-|---|---|
-| `.pmf(k)` | chance de sair **exatamente** k (só nas discretas) |
-| `.pdf(x)` | altura da curva em x (só nas contínuas) |
-| `.cdf(k)` | chance de sair **k ou menos** |
-| `.rvs(n)` | sorteia n valores |
-""")
-
-    nb.volta()
-
-    # ------------------------------------------------------------ binomial
-    nb.secao("binomial", "Contar sucessos: a binomial", """
-**O escritório vai interpor 10 recursos. Cada um tem 30% de chance de ser
-provido, e um não interfere no outro. Quantos serão providos?**
-
-Número fixo de tentativas, mesma chance em cada uma, independentes: binomial.
+E a Bernoulli fecha o círculo: quando $X$ vale 1 ou 0, a esperança é $p$. Por
+isso a média de uma coluna booleana, que usamos a aula inteira, **é** uma
+esperança.
 """)
 
     nb.code('''
-n, p = 10, 0.30
-
-# A chance de exatamente 3 serem providos
-stats.binom.pmf(3, n, p)
-''')
-
-    nb.code('''
-# A distribuição inteira, de 0 a 10
-quantos = np.arange(0, n + 1)
-
-dist = pd.DataFrame({
-    "providos": quantos,
-    "chance": stats.binom.pmf(quantos, n, p),
-})
-
-dist.round(4)
-''')
-
-    nb.code('''
-(
-    ggplot(dist)
-    + aes(x="providos", y="chance")
-    + geom_col(fill="#3ACC9F")
-    + scale_x_continuous(breaks=quantos)
-    + labs(x="recursos providos em 10", y="probabilidade",
-           title="Binomial com n = 10 e p = 0,30")
-    + theme_minimal()
-)
-''')
-
-    nb.md("""
-O pico está em 3, que é $10 \\times 0{,}30$. Mas repare no resto: sair 1 ou sair
-5 é perfeitamente possível. **Um resultado longe da média não é prova de que a
-chance estava errada.**
-""")
-
-    nb.faca(
-        'A pergunta do enunciado era "pelo menos 4". Como `.cdf(3)` dá a chance '
-        "de 3 ou menos, a chance de 4 ou mais é o complementar.",
-        '''
-1 - stats.binom.cdf(3, n, p)
-''',
-        '''
-1 - stats.binom.cdf(________, n, p)
-''',
-    )
-
-    nb.volta()
-
-    # ------------------------------------------------------------- poisson
-    nb.secao("poisson", "Contar chegadas: a Poisson", """
-**Uma vara recebe em média 7 processos novos por dia útil. Qual a chance de
-chegarem mais de 15 num dia?**
-
-Aqui não existem "10 tentativas": poderiam chegar 40. Contagem num intervalo de
-tempo, sem teto natural, é Poisson. O único parâmetro é a média, $\\lambda$.
-""")
-
-    nb.code('''
-lam = 7
-
-# Mais de 15 é o complementar de "15 ou menos"
-1 - stats.poisson.cdf(15, lam)
-''')
-
-    nb.code('''
-chegadas = np.arange(0, 21)
-
-poisson = pd.DataFrame({
-    "processos": chegadas,
-    "chance": stats.poisson.pmf(chegadas, lam),
-})
-
-(
-    ggplot(poisson)
-    + aes(x="processos", y="chance")
-    + geom_col(fill="#730D9F")
-    + labs(x="processos que chegam num dia", y="probabilidade",
-           title="Poisson com média 7")
-    + theme_minimal()
-)
-''')
-
-    nb.md("""
-Menos de 1% dos dias teriam mais de 15 chegadas. Isso é o que permite
-dimensionar equipe: não pelo dia médio, e sim pelo dia ruim.
-""")
-
-    nb.volta()
-
-    # --------------------------------------------------------- exponencial
-    nb.secao("exponencial", "Esperar: a exponencial", """
-**Quanto tempo entre a distribuição do recurso e o julgamento?**
-
-Tempo não é contagem: pode ser 2,4 anos. É uma variável contínua, sempre
-positiva, com muitos casos rápidos e uma minoria muito lenta. Esse formato é o
-da exponencial.
-
-Aqui vamos usar dados de verdade, e comparar o modelo com eles.
-""")
-
-    nb.code('''
-# A base de câmaras, a mesma do Projeto 2. A coluna `tempo` traz os anos
-# entre a distribuição do recurso e o julgamento.
-CAMARAS = "https://jtrecenti.github.io/cdad2-202662/_shared/dados/camaras.csv"
-
-camaras = pd.read_csv(CAMARAS)
-tempo = camaras["tempo"].dropna()
-
-tempo.describe().round(2)
-''')
-
-    nb.code('''
-media = tempo.mean()
-
-# A chance de o recurso passar de 5 anos, pelo modelo exponencial
-1 - stats.expon.cdf(5, scale=media)
-''')
-
-    nb.md("""
-E na base de verdade, quantos passaram de 5 anos?
-""")
-
-    nb.code('''
-(tempo > 5).mean()
-''')
-
-    nb.md("""
-Os dois números ficam próximos, mas não iguais. **A exponencial é um modelo do
-formato, não uma cópia da base**: nenhum recurso é julgado no dia seguinte, e a
-exponencial acha que isso seria o mais comum de todos.
-""")
-
-    nb.code('''
-grade = np.linspace(0, tempo.max(), 300)
-
-curva = pd.DataFrame({
-    "anos": grade,
-    "densidade": stats.expon.pdf(grade, scale=media),
-})
-
-(
-    ggplot()
-    + geom_histogram(aes(x="tempo", y="after_stat(density)"),
-                     data=camaras.dropna(subset=["tempo"]),
-                     bins=40, fill="#C9CCD2", color="white")
-    + geom_line(aes(x="anos", y="densidade"), data=curva,
-                color="#E50505", size=1.2)
-    + labs(x="anos entre a distribuição e o julgamento", y="densidade",
-           title="O que a base tem, e o modelo por cima")
-    + theme_minimal()
-)
-''')
-
-    nb.md("""
-⚠️ **A altura da curva não é probabilidade.** Numa contínua, a chance de dar
-*exatamente* 365,0 dias é zero: o que tem probabilidade é um intervalo, e ela é
-a área embaixo da curva. Por isso a contínua usa `.pdf` e não `.pmf`, e por
-isso a pergunta é sempre "mais que", "menos que" ou "entre".
-""")
-
-    nb.volta()
-
-    # ---------------------------------------------------------------- base
-    nb.secao("base", "A distribuição que a base mostra", """
-Até aqui foram distribuições teóricas. A base também tem distribuições, e elas
-são o histograma da aula 6.
-""")
-
-    nb.code(f'''
-URL = "{URL}"
-
-criminal = pd.read_csv(f"{{URL}}/tjsp_cjsg_criminal.csv")
-penas = criminal.dropna(subset=["pena_anos"]).query("pena_anos <= 30")
-
-(
-    ggplot(penas)
-    + aes(x="pena_anos")
-    + geom_histogram(bins=25, fill="#F89D49", color="white")
-    + labs(x="pena em anos", y="acórdãos",
-           title="A distribuição observada das penas")
-    + theme_minimal()
-)
-''')
-
-    nb.exercicio(1, "ex1", """
-Olhe o histograma e responda em uma frase cada:
-
-1. essa distribuição parece mais com qual das que vimos hoje: a simétrica em
-   torno da média, ou a de cauda longa para a direita?
-2. a média é maior ou menor que o valor mais comum? Confira com
-   `penas["pena_anos"].mean()` e `.mode()`.
-3. por que usar a média da pena como "a pena típica" pode enganar num relatório?
-""")
-
-    nb.code('''
-print("média :", round(penas["pena_anos"].mean(), 2))
-print("mediana:", round(penas["pena_anos"].median(), 2))
-print("moda   :", penas["pena_anos"].mode().iloc[0])
+# a media de uma coluna booleana E a esperanca de uma Bernoulli
+penas["fechado"].mean()
 ''')
 
     nb.volta()
 
     nb.resumo("""
-| a pergunta do caso | distribuição | no scipy |
-|---|---|---|
-| deu certo ou não, uma vez só | Bernoulli | `stats.bernoulli` |
-| quantos deram certo em n tentativas | binomial | `stats.binom` |
-| quantos aconteceram no período | Poisson | `stats.poisson` |
-| quantas tentativas até o primeiro | geométrica | `stats.geom` |
-| quanto tempo até acontecer | exponencial | `stats.expon` |
-| medida que se acumula em torno de um centro | normal | `stats.norm` |
+| ideia | no pandas |
+|---|---|
+| $P(A)$ | média de uma coluna booleana |
+| tabela de dupla entrada | `pd.crosstab(a, b, margins=True)` |
+| a mesma tabela em proporções | `normalize="all"` |
+| $P(A \\mid B)$ | `.query()` no B, e a média de A dentro do filtro |
+| todas as condicionais de uma vez | `normalize="index"` ou `"columns"` |
+| independência | comparar $P(A)P(B)n$ com o observado |
+| Bayes | $P(B \\mid A)P(A)/P(B)$, com $P(B)$ pela marginal |
+| esperança | soma de valor vezes probabilidade |
 
-**A frase para levar:** a distribuição não vem dos dados, vem do enunciado. Quem
-escolhe é a pergunta: contagem com teto, contagem sem teto, ou tempo de espera.
+**A frase para levar:** condicionar é trocar o denominador, e Bayes é o que
+permite trocar de volta.
 """)
 
     nb.volta()
