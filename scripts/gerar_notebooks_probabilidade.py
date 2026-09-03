@@ -412,7 +412,7 @@ def montar_aula08() -> Caderno:
         abertura="""
 Curto, como sempre. Tudo que está aqui já foi feito na lousa hoje.
 
-Uma diferença em relação ao slide: lá a tabela dos 300 processos era
+Uma diferença em relação ao slide: lá a tabela dos 400 processos era
 **ilustrativa**, com números escolhidos para fechar de cabeça. Aqui a base é
 **real**, e por isso as divisões não dão números redondos. É assim que a conta
 aparece na vida.
@@ -426,6 +426,7 @@ aparece na vida.
         ("Independência: o teste", "independencia"),
         ("Teorema de Bayes", "bayes"),
         ("Variável aleatória e esperança", "esperanca"),
+        ("Discreta, contínua e o que é um modelo", "continua"),
         ("RESUMO", "resumo"),
     ])
 
@@ -492,6 +493,48 @@ pd.crosstab(
 
 1. a **conjunta** de "reincidente e regime fechado";
 2. a **marginal** de "regime fechado".
+""")
+
+    nb.md("""
+**Interseção, união e marginal**, os três nomes do slide, saem todos daqui. No
+pandas, `&` é "e", `|` é "ou", e a média de uma coluna de sim ou não é a
+probabilidade dela.
+""")
+
+    nb.code('''
+A = penas["fechado"]
+B = penas["houve_reincidencia"]
+
+print("P(A)        ", round(A.mean(), 4))            # marginal
+print("P(B)        ", round(B.mean(), 4))            # marginal
+print("P(A e B)    ", round((A & B).mean(), 4))      # interseção
+print("P(A ou B)   ", round((A | B).mean(), 4))      # união
+''')
+
+    nb.md("""
+**✍️ Agora você.** A união também sai da fórmula do slide:
+
+$$P(A \\cup B) = P(A) + P(B) - P(A \\cap B)$$
+
+Confira que ela dá o mesmo número da conta direta acima.
+""")
+
+    nb.code('''
+pela_formula = A.mean() + B.mean() - (A & B).mean()
+
+print("pela fórmula:", round(pela_formula, 4))
+print("direto      :", round((A | B).mean(), 4))
+''', '''
+pela_formula = A.mean() + B.mean() - ________
+
+print("pela fórmula:", round(pela_formula, 4))
+print("direto      :", round((A | B).mean(), 4))
+''')
+
+    nb.md("""
+Se você tivesse somado só $P(A) + P(B)$, teria contado duas vezes quem tem as
+duas coisas. Subtrair a interseção é exatamente o que devolve o canto contado a
+mais.
 """)
 
     nb.volta()
@@ -714,10 +757,99 @@ penas["fechado"].mean()
 
     nb.volta()
 
+    # ------------------------------------------------------------ continua
+    nb.secao("continua", "Discreta, contínua e o que é um modelo", """
+`houve_reincidencia` é **discreta**: só assume 0 e 1, e a distribuição dela cabe
+em duas linhas. É uma Bernoulli.
+
+`pena_anos` é **contínua**: assume qualquer valor de um intervalo. Aqui
+$P(X = 5{,}66)$ não faz sentido, e a pergunta que faz sentido é por **faixa**.
+""")
+
+    nb.code('''
+penas_anos = criminal["pena_anos"].dropna()
+
+print("quantos acórdãos informam pena:", len(penas_anos))
+print("média  :", round(penas_anos.mean(), 2), "anos")
+print("desvio :", round(penas_anos.std(), 2), "anos")
+''')
+
+    nb.md("""
+**✍️ Agora você.** Calcule a probabilidade de a pena estar **entre 2 e 8 anos**.
+A conta é a mesma de sempre: uma condição vira coluna de `True` e `False`, e a
+média dela é a probabilidade.
+""")
+
+    nb.code('''
+entre_2_e_8 = (penas_anos >= 2) & (penas_anos <= 8)
+
+entre_2_e_8.mean()
+''', '''
+entre_2_e_8 = (penas_anos >= 2) & (penas_anos <= ________)
+
+entre_2_e_8.________()
+''')
+
+    nb.md("""
+### A pena é normal?
+
+Na aula usamos a regra dos desvios: numa **normal**, cerca de 68% da área cai
+entre $\\mu - \\sigma$ e $\\mu + \\sigma$, e cerca de 95% entre $\\mu - 2\\sigma$ e
+$\\mu + 2\\sigma$.
+
+Isso é uma afirmação **testável**. Vamos contar.
+""")
+
+    nb.code('''
+media = penas_anos.mean()
+desvio = penas_anos.std()
+
+for k in (1, 2):
+    dentro = ((penas_anos >= media - k * desvio)
+              & (penas_anos <= media + k * desvio)).mean()
+    esperado = {1: 0.68, 2: 0.95}[k]
+    print(f"media +- {k} desvio: {dentro:.1%} dos casos   "
+          f"(numa normal seria {esperado:.0%})")
+''')
+
+    nb.md("""
+Não bate, e não é por pouco: **96% contra 68%**.
+
+O motivo aparece no histograma. A pena é um valor que não pode ser negativo, se
+acumula em poucos anos e tem uma cauda longa de penas altas. Isso a torna
+fortemente assimétrica, e a normal é simétrica.
+""")
+
+    nb.code('''
+from plotnine import ggplot, aes, geom_histogram, geom_vline, labs, theme_minimal
+
+(
+    ggplot(penas_anos.to_frame("pena_anos"))
+    + aes(x="pena_anos")
+    + geom_histogram(bins=40, fill="#12996f")
+    + geom_vline(xintercept=media, color="#e50505", linetype="dashed")
+    + labs(x="pena em anos", y="acórdãos",
+           title="A média (linha vermelha) não fica no meio")
+    + theme_minimal()
+)
+''')
+
+    nb.md("""
+💡 **E é isso que significa escolher um modelo.** Dizer "a pena é normal" seria
+uma **suposição sobre a variável**, não um fato lido dos dados, e aqui ela seria
+uma suposição ruim: a conta dos desvios já a desmente.
+
+Na aula 9 vamos supor uma normal, mas não para a coluna: para a **média de uma
+amostra**. E aí a suposição se sustenta, por um motivo que é o assunto da aula.
+""")
+
+    nb.volta()
+
     nb.resumo("""
 | ideia | no pandas |
 |---|---|
 | $P(A)$ | média de uma coluna booleana |
+| $P(A \\cap B)$ e $P(A \\cup B)$ | `(A & B).mean()` e `(A \| B).mean()` |
 | tabela de dupla entrada | `pd.crosstab(a, b, margins=True)` |
 | a mesma tabela em proporções | `normalize="all"` |
 | $P(A \\mid B)$ | `.query()` no B, e a média de A dentro do filtro |
@@ -725,9 +857,11 @@ penas["fechado"].mean()
 | independência | comparar $P(A)P(B)n$ com o observado |
 | Bayes | $P(B \\mid A)P(A)/P(B)$, com $P(B)$ pela marginal |
 | esperança | soma de valor vezes probabilidade |
+| probabilidade por faixa | média de uma condição, como `(x >= 2) & (x <= 8)` |
 
 **A frase para levar:** condicionar é trocar o denominador, e Bayes é o que
-permite trocar de volta.
+permite trocar de volta. E dizer que uma variável segue uma distribuição
+conhecida é uma **suposição**, que dá para conferir nos dados.
 """)
 
     nb.volta()
