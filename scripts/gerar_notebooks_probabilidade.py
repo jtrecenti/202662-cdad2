@@ -1,14 +1,18 @@
-"""Notebooks das aulas 7, 8 e 9 (probabilidade, distribuições e inferência).
+"""Notebooks das aulas 7 a 11 (probabilidade, variáveis aleatórias e inferência).
 
 Sai daqui:
     notebooks/aula07_professor.ipynb   probabilidade condicional e independência
     notebooks/aula07_aluno.ipynb
     notebooks/aula08_professor.ipynb   condicional, independência e Bayes
     notebooks/aula08_aluno.ipynb
-    notebooks/aula09_professor.ipynb   amostra, TCL e intervalo de confiança
+    notebooks/aula09_professor.ipynb   variável aleatória discreta, esperança e risco
     notebooks/aula09_aluno.ipynb
+    notebooks/aula10_professor.ipynb   catálogo de distribuições
+    notebooks/aula10_aluno.ipynb
+    notebooks/aula11_professor.ipynb   amostra, TCL e intervalo de confiança
+    notebooks/aula11_aluno.ipynb
 
-Estes três são propositalmente CURTOS, na casa de vinte células, e não os
+Estes são propositalmente CURTOS, na casa de vinte células, e não os
 oitenta das aulas 2 a 6. O motivo é o formato da aula: a conta é feita na
 lousa, com a turma junto, e o notebook vem depois só para conferir na máquina
 o que já foi entendido no papel. Notebook comprido aqui competiria com a lousa
@@ -875,8 +879,705 @@ def montar_aula09() -> Caderno:
     nb = Caderno("aula09")
 
     nb.cabecalho(
-        "Da amostra para a população",
+        "A distribuição, a média e o risco",
         "Aula 09",
+        [
+            "montar a distribuição de uma variável aleatória discreta numa tabela;",
+            "calcular esperança, variância e desvio padrão a partir dessa tabela;",
+            "conferir no código o que somar um fixo e o que multiplicar fazem com "
+            "a média e com o risco;",
+            "decidir entre duas propostas usando os dois números, e não só a média.",
+        ],
+        abertura="""
+Na lousa fizemos as contas do exemplo das audiências no braço. Aqui elas viram
+três linhas de código, e é isso que libera espaço para a pergunta que importa:
+o que muda quando a regra do jogo muda.
+""",
+    )
+
+    nb.indice([
+        ("A distribuição numa tabela", "distribuicao"),
+        ("Esperança", "esperanca"),
+        ("Variância e desvio padrão", "variancia"),
+        ("As duas propostas", "propostas"),
+        ("O caso do acordo", "acordo"),
+        ("De onde vem uma distribuição de verdade", "real"),
+        ("RESUMO", "resumo"),
+    ])
+
+    # ------------------------------------------------------- distribuicao
+    nb.secao("distribuicao", "A distribuição numa tabela", """
+O exemplo da aula: a advogada atende **duas audiências por dia**, cada acordo
+rende **R$ 500**, e a chance de acordo em cada audiência é **0,20**.
+
+A distribuição que montamos na lousa cabe num `DataFrame` de três linhas. A
+coluna `x` traz os valores possíveis, e a coluna `p` a probabilidade de cada um.
+""")
+
+    nb.code('''
+import pandas as pd
+
+pd.set_option("display.max_columns", 30)
+pd.set_option("display.width", 160)
+
+X = pd.DataFrame({
+    "x": [0, 500, 1000],
+    "p": [0.64, 0.32, 0.04],
+})
+
+X
+''')
+
+    nb.md("""
+A primeira conferência é sempre a mesma: **a coluna `p` soma 1?** Se não somar,
+faltou um caminho da árvore ou sobrou um.
+""")
+
+    nb.code('''
+X["p"].sum()
+''')
+
+    nb.faca(
+        "De onde saiu o 0,32? Escreva a conta que produz a probabilidade de sair "
+        "exatamente um acordo no dia, usando 0,20 e 0,80.",
+        '''
+# sai de dois caminhos: acordo na primeira e não na segunda, ou o contrário
+0.20 * 0.80 + 0.80 * 0.20
+''',
+        '''
+# sai de dois caminhos: acordo na primeira e não na segunda, ou o contrário
+________ * ________ + ________ * ________
+''',
+    )
+
+    nb.volta()
+
+    # ---------------------------------------------------------- esperanca
+    nb.secao("esperanca", "Esperança", """
+$$E(X) = x_1 \\, P(X = x_1) + x_2 \\, P(X = x_2) + \\cdots + x_k \\, P(X = x_k)$$
+
+Cada valor vezes a sua probabilidade, tudo somado. Em pandas isso é uma
+multiplicação de colunas seguida de um `.sum()`.
+""")
+
+    nb.code('''
+esperanca = (X["x"] * X["p"]).sum()
+
+esperanca
+''')
+
+    nb.md("""
+R$ 200. Vale repetir o que a lousa disse: **200 não é um valor possível**. Num
+dia ela recebe 0, 500 ou 1.000, nunca 200. É o que entra em média ao longo de
+muitos dias.
+""")
+
+    nb.faca(
+        "Na atividade em duplas, o lucro da semana valia 2.600 com probabilidade "
+        "0,16, 1.100 com 0,48 e −400 com 0,36. Monte a tabela e calcule a "
+        "esperança. Confira que ela bate com os R$ 800 do quadro.",
+        '''
+L = pd.DataFrame({
+    "x": [2600, 1100, -400],
+    "p": [0.16, 0.48, 0.36],
+})
+
+print("soma das probabilidades:", L["p"].sum())
+print("esperança:", (L["x"] * L["p"]).sum())
+''',
+        '''
+L = pd.DataFrame({
+    "x": [________, ________, ________],
+    "p": [________, ________, ________],
+})
+
+print("soma das probabilidades:", L["p"].sum())
+print("esperança:", (L["________"] * L["________"]).sum())
+''',
+    )
+
+    nb.md("""
+E a probabilidade de a semana dar prejuízo é a soma das probabilidades dos
+valores negativos. Aqui só há um.
+""")
+
+    nb.code('''
+L.loc[L["x"] < 0, "p"].sum()
+''')
+
+    nb.volta()
+
+    # ---------------------------------------------------------- variancia
+    nb.secao("variancia", "Variância e desvio padrão", """
+$$Var(X) = [x_1 - E(X)]^2 \\, P(X = x_1) + \\cdots + [x_k - E(X)]^2 \\, P(X = x_k)$$
+
+O desvio de cada valor até a esperança, ao quadrado, pesado pela probabilidade.
+""")
+
+    nb.code('''
+variancia = (((X["x"] - esperanca) ** 2) * X["p"]).sum()
+
+print("variância:", variancia)
+print("desvio padrão:", variancia ** 0.5)
+''')
+
+    nb.md("""
+A variância sai em **reais ao quadrado**, que não quer dizer nada para ninguém.
+O desvio padrão volta para reais, e é ele que se lê ao lado da esperança: um dia
+típico fica em torno de R$ 200, oscilando algo como R$ 283 para cada lado.
+
+Repare que a conta tem a mesma forma da esperança: cada linha da tabela entra
+com o seu peso `p`. O que muda é o que está sendo pesado, o desvio até a média
+em vez do próprio valor.
+""")
+
+    nb.volta()
+
+    # ---------------------------------------------------------- propostas
+    nb.secao("propostas", "As duas propostas", """
+O escritório vai mudar a remuneração:
+
+- **proposta A**: um fixo de R$ 300 por dia, mais os honorários de sempre,
+  ou seja $Y = X + 300$;
+- **proposta B**: nenhum fixo, e os honorários triplicados, ou seja $W = 3X$.
+
+Repare no que muda na tabela: **a coluna `p` é a mesma nas três**. O que a
+transformação mexe é só na coluna `x`.
+""")
+
+    nb.code('''
+def resumir(tabela, nome):
+    """Esperança, variância e desvio padrão de uma distribuição em tabela."""
+    E = (tabela["x"] * tabela["p"]).sum()
+    V = (((tabela["x"] - E) ** 2) * tabela["p"]).sum()
+    return {"quem": nome, "E": E, "Var": V, "DP": round(V ** 0.5, 2)}
+
+
+Y = X.assign(x=X["x"] + 300)
+W = X.assign(x=X["x"] * 3)
+
+pd.DataFrame([
+    resumir(X, "X: hoje"),
+    resumir(Y, "Y = X + 300"),
+    resumir(W, "W = 3X"),
+])
+''')
+
+    nb.md("""
+Agora as propriedades da lousa, conferidas contra a tabela acima:
+
+| propriedade | conta | resultado |
+|---|---|---|
+| $E(X + d) = E(X) + d$ | $200 + 300$ | 500 |
+| $E(cX) = c \\, E(X)$ | $3 \\times 200$ | 600 |
+| $Var(X + d) = Var(X)$ | 80.000 | 80.000 |
+| $Var(cX) = c^2 \\, Var(X)$ | $9 \\times 80.000$ | 720.000 |
+
+O fixo empurra a média e **não toca no risco**: somar 300 a todos os dias
+desloca a distribuição inteira e não muda a distância de um dia para o outro.
+Triplicar estica essas distâncias, e o quadrado da definição transforma o 3 em 9.
+""")
+
+    nb.faca(
+        "B paga R$ 100 a mais por dia em média e oscila três vezes mais. Onde isso "
+        "aparece: calcule, nas duas propostas, a probabilidade de o dia render "
+        "MENOS de R$ 300.",
+        '''
+for tabela, nome in [(Y, "Y = X + 300"), (W, "W = 3X")]:
+    print(nome, ":", tabela.loc[tabela["x"] < 300, "p"].sum())
+''',
+        '''
+for tabela, nome in [(Y, "Y = X + 300"), (W, "W = 3X")]:
+    print(nome, ":", tabela.loc[tabela["________"] < ________, "p"].sum())
+''',
+    )
+
+    nb.md("""
+Zero contra 0,64. O fixo da proposta A garante R$ 300 todo dia, e a B deixa a
+advogada **sem nada em quase dois terços dos dias**, em troca de R$ 100 a mais
+em média. Não há resposta certa: quem tem pouco caixa escolhe A, quem tem muito
+escolhe B.
+""")
+
+    nb.volta()
+
+    # ------------------------------------------------------------- acordo
+    nb.secao("acordo", "O caso do acordo", """
+O caso que abriu a aula: 30% de chance de receber R$ 200.000, 70% de pagar
+R$ 20.000, contra um acordo de R$ 40.000 na mesa.
+""")
+
+    nb.code('''
+litigio = pd.DataFrame({
+    "x": [200_000, -20_000],
+    "p": [0.30, 0.70],
+})
+
+resumir(litigio, "ir a julgamento")
+''')
+
+    nb.md("""
+O julgamento vale R$ 46.000 em média, contra os R$ 40.000 do acordo. Pelo valor
+esperado, ir a julgamento.
+
+E o desvio padrão é de uns R$ 100.000, **mais que o dobro da própria média**. Em
+70% dos cenários o cliente sai devendo. Aceitar menos que o valor esperado em
+troca de certeza tem nome, **aversão ao risco**, e é o que explica a maior parte
+dos acordos que fecham abaixo do valor esperado do julgamento.
+""")
+
+    nb.faca(
+        "Qual o menor acordo que ainda empata com o julgamento no valor esperado? "
+        "E se a chance de procedência caísse de 30% para 20%, quanto passaria a "
+        "valer o julgamento?",
+        '''
+print("empata em:", (litigio["x"] * litigio["p"]).sum())
+
+pessimista = pd.DataFrame({"x": [200_000, -20_000], "p": [0.20, 0.80]})
+print("com 20% de chance:", (pessimista["x"] * pessimista["p"]).sum())
+''',
+        '''
+print("empata em:", (litigio["x"] * litigio["p"]).sum())
+
+pessimista = pd.DataFrame({"x": [200_000, -20_000], "p": [________, ________]})
+print("com 20% de chance:", (pessimista["x"] * pessimista["p"]).sum())
+''',
+    )
+
+    nb.md("""
+Com 20% de chance o julgamento passa a valer R$ 24.000, e o acordo de R$ 40.000
+vira o melhor negócio até pelo valor esperado. **Dez pontos de probabilidade
+viraram a decisão**, e é por isso que a avaliação de chance de êxito não é
+detalhe de petição.
+""")
+
+    nb.volta()
+
+    # --------------------------------------------------------------- real
+    nb.secao("real", "De onde vem uma distribuição de verdade", """
+Até aqui as probabilidades vieram do enunciado. Na prática elas vêm de uma base:
+a frequência com que cada valor apareceu é a estimativa da probabilidade dele.
+""")
+
+    nb.code(ABERTURA_CRIMINAL)
+
+    nb.code('''
+# a distribuição do regime inicial, lida direto da base
+regime = (
+    penas["regime_inicial"]
+    .value_counts(normalize=True)
+    .rename("p")
+    .reset_index()
+)
+
+regime
+''')
+
+    nb.md("""
+Isso é uma distribuição: valores possíveis e a probabilidade de cada um, somando
+1. A diferença é que aqui ela foi **estimada**, e não suposta.
+
+Para calcular esperança precisamos de números, e regime é uma categoria. Então
+vamos supor uma consequência: cada regime custa um valor diferente de honorários
+de defesa.
+""")
+
+    nb.faca(
+        "Suponha que a defesa cobre R$ 12.000 quando o regime é fechado, R$ 8.000 "
+        "no semiaberto e R$ 5.000 no aberto. Qual o honorário esperado de um caso "
+        "sorteado ao acaso na base?",
+        '''
+honorario = {"fechado": 12_000, "semiaberto": 8_000, "aberto": 5_000}
+
+tabela = regime.assign(x=regime["regime_inicial"].map(honorario))
+
+(tabela["x"] * tabela["p"]).sum()
+''',
+        '''
+honorario = {"fechado": ________, "semiaberto": ________, "aberto": ________}
+
+tabela = regime.assign(x=regime["regime_inicial"].map(honorario))
+
+(tabela["________"] * tabela["________"]).sum()
+''',
+    )
+
+    nb.md("""
+É a mesma conta das audiências, com as probabilidades vindas dos dados em vez do
+enunciado. Todo o resto da aula funciona igual.
+""")
+
+    nb.volta()
+
+    nb.resumo("""
+1. **Distribuição** é a tabela inteira: valores possíveis e probabilidade de
+   cada um. Conferir que `p` soma 1 é a primeira coisa a fazer.
+
+2. **Esperança** é `(x * p).sum()`, e quase nunca é um valor possível.
+
+3. **Variância** é `((x - E)**2 * p).sum()`, e o **desvio padrão** é a raiz dela,
+   que é o número que se lê ao lado da esperança.
+
+4. Somar um fixo mexe na média e **não** no risco. Multiplicar mexe nos dois, e
+   no risco pelo quadrado.
+
+5. Duas decisões com a mesma média podem ser muito diferentes. Quem só olha a
+   média não vê a diferença.
+""")
+
+    nb.volta()
+    return nb
+
+
+# ====================================================== AULA 10
+
+
+def montar_aula10() -> Caderno:
+    nb = Caderno("aula10")
+
+    nb.cabecalho(
+        "Um catálogo de distribuições",
+        "Aula 10",
+        [
+            "reconhecer se um fenômeno é contagem ou medida, e escolher entre "
+            "discreta e contínua;",
+            "dizer o que cada uma das seis distribuições da aula descreve;",
+            "desenhar qualquer uma delas em Python, mexendo nos parâmetros;",
+            "conferir contra o histograma da base se o modelo escolhido se "
+            "sustenta.",
+        ],
+        abertura="""
+Nada aqui pede fórmula decorada. O que este notebook treina é o olho: ver a
+forma, associar ao fenômeno, e desconfiar quando o desenho não bate com os
+dados.
+""",
+    )
+
+    nb.indice([
+        ("Contagem ou medida", "tipo"),
+        ("As discretas", "discretas"),
+        ("As contínuas", "continuas"),
+        ("O modelo bate com a base?", "conferir"),
+        ("Onde a suposição quebra", "quebra"),
+        ("RESUMO", "resumo"),
+    ])
+
+    # --------------------------------------------------------------- tipo
+    nb.secao("tipo", "Contagem ou medida", """
+A primeira decisão é sempre a mesma, e não precisa de conta nenhuma:
+
+| pergunta | tipo | gráfico |
+|---|---|---|
+| quantos? | **discreta** | barras separadas |
+| quanto? | **contínua** | curva |
+
+Cada barra de uma discreta é uma probabilidade de verdade, e as barras somam 1.
+Numa contínua a altura não é probabilidade: **a probabilidade é a área**, e por
+isso a pergunta é sempre por faixa.
+""")
+
+    nb.code('''
+import numpy as np
+import pandas as pd
+from plotnine import *
+from scipy import stats
+
+pd.set_option("display.max_columns", 30)
+pd.set_option("display.width", 160)
+''')
+
+    nb.volta()
+
+    # ---------------------------------------------------------- discretas
+    nb.secao("discretas", "As discretas", """
+Três, na ordem em que aparecem na aula. Repare que o código é o mesmo nas três,
+mudando só a distribuição do `scipy`.
+""")
+
+    nb.md("""
+**Bernoulli.** Um sim ou não. Um recurso: provido ou não provido.
+""")
+
+    nb.code('''
+p = 0.30
+
+bernoulli = pd.DataFrame({"x": [0, 1], "prob": [1 - p, p]})
+
+(
+    ggplot(bernoulli, aes(x="factor(x)", y="prob"))
+    + geom_col(fill="#12996f", width=0.5)
+    + labs(x="provido (1) ou não (0)", y="probabilidade",
+           title="Bernoulli com p = 0,30")
+)
+''')
+
+    nb.md("""
+**Binomial.** Quantos sucessos em `n` tentativas. O escritório interpõe 10
+recursos: quantos serão providos?
+""")
+
+    nb.code('''
+n, p = 10, 0.30
+
+binomial = pd.DataFrame({"x": range(n + 1)})
+binomial["prob"] = stats.binom.pmf(binomial["x"], n, p)
+
+(
+    ggplot(binomial, aes(x="x", y="prob"))
+    + geom_col(fill="#12996f")
+    + scale_x_continuous(breaks=range(n + 1))
+    + labs(x="recursos providos", y="probabilidade",
+           title="Binomial com n = 10 e p = 0,30")
+)
+''')
+
+    nb.md("""
+**Poisson.** Quantas ocorrências num período, sem teto natural. Quantas ações
+novas chegam na vara hoje?
+""")
+
+    nb.code('''
+lam = 4
+
+poisson = pd.DataFrame({"x": range(15)})
+poisson["prob"] = stats.poisson.pmf(poisson["x"], lam)
+
+(
+    ggplot(poisson, aes(x="x", y="prob"))
+    + geom_col(fill="#12996f")
+    + labs(x="ações novas no dia", y="probabilidade",
+           title="Poisson com λ = 4")
+)
+''')
+
+    nb.faca(
+        "Mexa nos parâmetros e olhe o que muda de FORMA, não de números. Rode a "
+        "binomial com p = 0,05 e depois com p = 0,50, e a Poisson com λ = 1 e "
+        "depois com λ = 10. Onde fica o pico em cada caso?",
+        '''
+for parametro in [0.05, 0.50]:
+    d = pd.DataFrame({"x": range(11)})
+    d["prob"] = stats.binom.pmf(d["x"], 10, parametro)
+    print(f"binomial p={parametro}: pico em {d.loc[d['prob'].idxmax(), 'x']}, "
+          f"média {10 * parametro}")
+
+for parametro in [1, 10]:
+    d = pd.DataFrame({"x": range(25)})
+    d["prob"] = stats.poisson.pmf(d["x"], parametro)
+    print(f"poisson λ={parametro}: pico em {d.loc[d['prob'].idxmax(), 'x']}, "
+          f"média {parametro}")
+''',
+        '''
+for parametro in [________, ________]:
+    d = pd.DataFrame({"x": range(11)})
+    d["prob"] = stats.binom.pmf(d["x"], 10, parametro)
+    print(f"binomial p={parametro}: pico em {d.loc[d['prob'].idxmax(), 'x']}, "
+          f"média {10 * parametro}")
+
+for parametro in [________, ________]:
+    d = pd.DataFrame({"x": range(25)})
+    d["prob"] = stats.poisson.pmf(d["x"], parametro)
+    print(f"poisson λ={parametro}: pico em {d.loc[d['prob'].idxmax(), 'x']}, "
+          f"média {parametro}")
+''',
+    )
+
+    nb.md("""
+O pico da binomial fica em torno de $n \\times p$, e o da Poisson em torno de
+$\\lambda$. Nas duas, a média é onde a massa se concentra, e é só isso que
+precisa ficar.
+""")
+
+    nb.volta()
+
+    # ---------------------------------------------------------- continuas
+    nb.secao("continuas", "As contínuas", """
+Aqui o gráfico é uma curva, e a altura dela **não** é probabilidade. Repare no
+eixo y: em algumas curvas ele passa de 1, o que seria impossível se fosse
+probabilidade.
+""")
+
+    nb.code('''
+grade = pd.DataFrame({"x": np.linspace(0, 120, 400)})
+
+curvas = pd.concat([
+    grade.assign(dens=stats.uniform.pdf(grade["x"], 20, 60), qual="uniforme"),
+    grade.assign(dens=stats.expon.pdf(grade["x"], scale=20), qual="exponencial"),
+    grade.assign(dens=stats.norm.pdf(grade["x"], 60, 12), qual="normal"),
+])
+
+(
+    ggplot(curvas, aes(x="x", y="dens"))
+    + geom_area(fill="#bfe6d5")
+    + geom_line(size=0.8)
+    + facet_wrap("qual", scales="free_y")
+    + labs(x="dias", y="densidade", title="As três contínuas da aula")
+)
+''')
+
+    nb.md("""
+- **uniforme**: um retângulo. Nenhum valor da faixa é mais provável que outro.
+- **exponencial**: começa alta e cai. Muitos casos rápidos, uma cauda longa.
+- **normal**: simétrica, com pico no meio.
+
+A probabilidade de uma faixa é a **área** debaixo da curva, e o `scipy` já
+entrega isso pronto com o `.cdf`.
+""")
+
+    nb.code('''
+# P(o laudo sair entre 50 e 70 dias), na normal de média 60 e desvio 12
+stats.norm.cdf(70, 60, 12) - stats.norm.cdf(50, 60, 12)
+''')
+
+    nb.faca(
+        "Na mesma normal, calcule a probabilidade de o laudo sair em mais de 90 "
+        "dias, e a de sair em exatamente 60 dias.",
+        '''
+print("mais de 90 dias:", 1 - stats.norm.cdf(90, 60, 12))
+print("exatamente 60 dias:", stats.norm.cdf(60, 60, 12) - stats.norm.cdf(60, 60, 12))
+''',
+        '''
+print("mais de 90 dias:", 1 - stats.norm.cdf(________, 60, 12))
+print("exatamente 60 dias:", stats.norm.cdf(60, 60, 12) - stats.norm.cdf(________, 60, 12))
+''',
+    )
+
+    nb.md("""
+Zero. Não é um defeito da conta: em variável contínua, a probabilidade de
+**qualquer** ponto isolado é zero mesmo. Por isso, aqui, `>` e `>=` dão o mesmo
+número, e em discreta não dão.
+""")
+
+    nb.volta()
+
+    # ---------------------------------------------------------- conferir
+    nb.secao("conferir", "O modelo bate com a base?", """
+Escolher uma distribuição é **supor** algo sobre o fenômeno, e suposição se
+confere. O juiz é o histograma.
+""")
+
+    nb.code(ABERTURA_CRIMINAL)
+
+    nb.code('''
+penas["pena_anos"].describe()
+''')
+
+    nb.md("""
+Média e mediana bem diferentes já avisam: a distribuição não é simétrica. Vamos
+desenhar o histograma com a normal por cima, usando a média e o desvio da
+própria base.
+""")
+
+    nb.code('''
+media = penas["pena_anos"].mean()
+desvio = penas["pena_anos"].std()
+
+grade = pd.DataFrame({"x": np.linspace(0, penas["pena_anos"].max(), 300)})
+grade["dens"] = stats.norm.pdf(grade["x"], media, desvio)
+
+(
+    ggplot()
+    + geom_histogram(penas, aes(x="pena_anos", y="..density.."),
+                     bins=30, fill="#dcdcdc", color="white")
+    + geom_line(grade, aes(x="x", y="dens"), color="#e50505", size=1)
+    + labs(x="pena (anos)", y="densidade",
+           title="A pena segue uma normal?")
+)
+''')
+
+    nb.md("""
+**Não segue.** A normal é simétrica e desce para os dois lados; a pena tem um
+piso em zero, uma concentração nos valores baixos e uma cauda comprida à
+direita. A curva vermelha chega a prever pena negativa, que não existe.
+
+É o mesmo desenho da **exponencial** da seção anterior, e é assim que quase todo
+valor jurídico se comporta: pena, tempo de tramitação, indenização, honorários.
+""")
+
+    nb.faca(
+        "Uma regra rápida para desconfiar: numa normal, cerca de 68% dos casos "
+        "ficam a um desvio padrão da média. Calcule essa proporção na base e "
+        "compare com os 68% que o modelo promete.",
+        '''
+dentro = penas["pena_anos"].between(media - desvio, media + desvio).mean()
+
+print(f"o modelo promete: 68%")
+print(f"a base entrega:   {dentro:.1%}")
+''',
+        '''
+dentro = penas["pena_anos"].between(________, ________).mean()
+
+print(f"o modelo promete: 68%")
+print(f"a base entrega:   {dentro:.1%}")
+''',
+    )
+
+    nb.md("""
+A diferença é grande, e é uma **falsificação**: o modelo prometeu um número, os
+dados entregaram outro. É assim que se descarta uma distribuição, e não por
+opinião sobre a forma do gráfico.
+""")
+
+    nb.volta()
+
+    # ------------------------------------------------------------- quebra
+    nb.secao("quebra", "Onde a suposição quebra", """
+A binomial exige três coisas: número fixo de tentativas, mesma probabilidade em
+todas, e **independência**. A terceira é a que mais cai por terra em problema
+jurídico.
+""")
+
+    nb.faca(
+        "Escreva, numa frase de comentário, um caso jurídico em que contar "
+        "sucessos em n tentativas NÃO é binomial porque as tentativas se "
+        "influenciam.",
+        '''
+# Exemplo: dez recursos do mesmo escritório, sobre a mesma tese, julgados pela
+# mesma câmara. Se o primeiro é provido, os outros passam a ter mais chance,
+# porque o que decide não é o acaso e sim o entendimento da câmara sobre a tese.
+# Usar binomial aqui subestima muito a chance dos extremos, dez providos ou
+# nenhum, que são justamente os cenários que interessam a quem recorre.
+''',
+        '''
+# ESCREVA SUA RESPOSTA AQUI
+''',
+    )
+
+    nb.md("""
+O mesmo raciocínio vale para as outras: a Poisson supõe que as ocorrências não
+se aglomeram, e um mutirão de ações de um mesmo escritório quebra isso na hora.
+""")
+
+    nb.volta()
+
+    nb.resumo("""
+1. **Contagem** vira barra e é discreta; **medida** vira curva e é contínua.
+
+2. Discretas: Bernoulli (um sim ou não), Binomial (quantos de `n`) e Poisson
+   (quantos no período, sem teto).
+
+3. Contínuas: uniforme (sem preferência), exponencial (tempo de espera, cauda
+   longa) e normal (soma de muitas causas).
+
+4. Em contínua a probabilidade é **área**, e a de um ponto é zero.
+
+5. Escolher a distribuição é **supor**. O histograma da base é quem decide se a
+   suposição fica de pé, e dinheiro e tempo quase nunca são normais.
+""")
+
+    nb.volta()
+    return nb
+
+
+# ====================================================== AULA 11
+
+
+def montar_aula11() -> Caderno:
+    nb = Caderno("aula11")
+
+    nb.cabecalho(
+        "Da amostra para a população",
+        "Aula 11",
         [
             "separar parâmetro, estimador e estimativa num enunciado;",
             "simular o que acontece quando se sorteia uma amostra muitas vezes;",
@@ -1131,7 +1832,8 @@ método, não sobre este intervalo. E ele só vale se a amostra foi sorteada.
 
 
 def main() -> None:
-    for construir in (montar_aula07, montar_aula08, montar_aula09):
+    for construir in (montar_aula07, montar_aula08, montar_aula09, montar_aula10,
+                      montar_aula11):
         caderno = construir()
         print(f"{caderno.nome}:")
         caderno.gravar()
