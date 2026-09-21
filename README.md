@@ -33,6 +33,28 @@ Os notebooks das aulas vêm com lacunas (`________`), que são preenchidas em
 sala. As versões resolvidas são distribuídas pelo BlackBoard depois de cada
 aula.
 
+## Listas de exercícios
+
+Treino fora da sala, na ordem do conteúdo. O gabarito de cada lista é publicado
+depois que ela já foi feita: ali ele é material de estudo, e não resposta
+adiantada.
+
+| lista | conteúdo | enunciado | gabarito |
+|---|---|---|---|
+| 1 | Tipos de variáveis, filtrar e resumir | [PDF](listas/lista01.pdf) | [PDF](listas/lista01-gabarito.pdf) |
+| 2 | Encadeamento, gráficos e duas variáveis | [PDF](listas/lista02.pdf) | |
+| 4 | Inferência e planejamento de pesquisa | [PDF](listas/lista04.pdf) | [PDF](listas/lista04-gabarito.pdf) |
+
+## Projetos aplicados em papel
+
+O Projeto Aplicado 3 foi feito à mão, individualmente, em uma hora de aula. O
+gabarito é comentado: traz a resposta esperada e o critério de correção de cada
+item, que é o mesmo usado na correção das folhas.
+
+| projeto | conteúdo | enunciado | gabarito |
+|---|---|---|---|
+| 3 | Probabilidade, Bayes e variáveis aleatórias | [PDF](projetos-aplicados/pa03.pdf) | [PDF](projetos-aplicados/pa03-gabarito.pdf) |
+
 ## Pesquisa de campo
 
 O enunciado completo da atividade em grupo, com os sete temas, os métodos, as
