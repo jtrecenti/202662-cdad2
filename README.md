@@ -45,6 +45,10 @@ adiantada.
 | 2 | Encadeamento, gráficos e duas variáveis | [PDF](listas/lista02.pdf) | |
 | 4 | Inferência e planejamento de pesquisa | [PDF](listas/lista04.pdf) | [PDF](listas/lista04-gabarito.pdf) |
 
+Além das listas, os **exercícios da revisão da aula 13** saíram resolvidos e
+comentados, do planejamento da pesquisa até uma decisão tomada com intervalo de
+confiança: [PDF](listas/revisao-aula13-gabarito.pdf).
+
 ## Projetos aplicados em papel
 
 O Projeto Aplicado 3 foi feito à mão, individualmente, em uma hora de aula. O
